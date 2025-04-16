@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body {
+    background-color: #E5E7EB;
+    padding: 20px;
+}
+
+.background {
+    background: linear-gradient(to right, #8B5CF6, #A855F7);
+}
+
+.text-color {
+    background: linear-gradient(to right, #8B5CF6, #A855F7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.primarytext{
+    color: #A855F7;
+}
+.primarybg{
+    background-color: #A855F7;
+}
+.secondarytext{
+    color: #012d5b;
+}
+.secondarybg{
+    background-color: #012d5b;
+}
