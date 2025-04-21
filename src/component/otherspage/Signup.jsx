@@ -70,7 +70,7 @@ const SignUp = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then((result) => {
-        navigate('/')
+        navigate('/home')
         console.log("Google sign in success:", result.user);
       })
       .catch((error) => {
@@ -250,7 +250,7 @@ const SignUp = () => {
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <Link
-                  to="/login"
+                  to="/"
                   className="font-medium text-purple-600 hover:text-purple-500"
                 >
                   Sign in
