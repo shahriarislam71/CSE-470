@@ -4,8 +4,8 @@ import Announcement from "../component/dashboard/EnrolledCourses/Announcement";
 import Archive from "../component/dashboard/EnrolledCourses/Archive";
 import Assignments from "../component/dashboard/EnrolledCourses/Assignments";
 import Chatroom from "../component/dashboard/EnrolledCourses/ChatRoom";
+import CourseOutline from '../component/dashboard/EnrolledCourses/CourseOutline';
 import LectureNotes from "../component/dashboard/EnrolledCourses/LectureNotes";
-import Materialls from "../component/dashboard/EnrolledCourses/Materials";
 import OtherResources from "../component/dashboard/EnrolledCourses/OtherResources";
 import Practiceproblem from "../component/dashboard/EnrolledCourses/PractiseProblem";
 import Studentresourses from "../component/dashboard/EnrolledCourses/StudentResourses";
@@ -84,10 +84,8 @@ const route = createBrowserRouter([
       element: <EnrolledCourseSideBar />, 
       children: [
           
-          { path: 'course-outline', element: <Materialls></Materialls>
-           },
+          { path: 'course-outline', element: <CourseOutline></CourseOutline> },
           { path: 'assignments', element: <Assignments></Assignments> },
-          
           { path: 'videos', element: <Video />},
           { path: 'practiceproblem', element: <Practiceproblem></Practiceproblem>},
           { path: 'studentresources', element: <Studentresourses></Studentresourses>},
