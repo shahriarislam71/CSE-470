@@ -1,0 +1,108 @@
+{
+    "courseOutlines": [
+      {
+        "id": 2,
+        "courseId": "CSE110",
+        "courseName": "Python Programming Fundamentals",
+        "instructor": {
+          "name": "Dr. Zarin Tasnim",
+          "img": "https://img.freepik.com/free-photo/portrait-female-teacher-holding-notepad-green_140725-149620.jpg?ga=GA1.1.117759008.1745338879&semt=ais_hybrid&w=740",
+          "bio": "Teaches practical problem-solving using Python, covering basic to intermediate level programming, logic building, and data structures. She emphasizes hands-on learning and real-world applications, preparing students for software development roles. Her teaching style is interactive, focusing on engaging students through projects and coding exercises. She has a strong background in computer science and software engineering, with experience in various programming languages and technologies. She is passionate about empowering students to become proficient programmers and problem solvers. She is also a mentor for aspiring developers, guiding them in their career paths and helping them build a strong foundation in programming. She is dedicated to fostering a positive learning environment and encouraging students to explore their creativity through coding."
+        },
+        "weeks": [
+          {
+            "week": 1,
+            "topics": [
+              { "title": "Introduction to Python" },
+              { "title": "Installing Python and VS Code" },
+              { "title": "Running Your First Python Script" }
+            ]
+          },
+          {
+            "week": 2,
+            "topics": [
+              { "title": "Variables and Data Types" },
+              { "title": "Basic Input and Output" },
+              { "title": "Quiz 1: Week 1 + Week 2", "type": "quiz" }
+            ]
+          },
+          {
+            "week": 3,
+            "topics": [
+              { "title": "Conditional Statements (if, elif, else)" },
+              { "title": "Boolean Logic and Comparison Operators" }
+            ]
+          },
+          {
+            "week": 4,
+            "topics": [
+              { "title": "Loops (for, while)" },
+              { "title": "Loop Control Statements (break, continue)" },
+              { "title": "Quiz 2: Week 3 + Week 4", "type": "quiz" }
+            ]
+          },
+          {
+            "week": 5,
+            "topics": [
+              { "title": "Functions and Parameters" },
+              { "title": "Scope and Return Values" },
+              { "title": "Midterm Exam", "type": "midterm" }
+            ]
+          },
+          {
+            "week": 6,
+            "topics": [
+              { "title": "Lists and Tuples" },
+              { "title": "List Methods and Looping Through Lists" }
+            ]
+          },
+          {
+            "week": 7,
+            "topics": [
+              { "title": "Dictionaries and Sets" },
+              { "title": "Nesting and Practical Use Cases" },
+              { "title": "Quiz 3: Week 6 + Week 7", "type": "quiz" }
+            ]
+          },
+          {
+            "week": 8,
+            "topics": [
+              { "title": "String Manipulation Techniques" },
+              { "title": "f-strings and Formatting Output" }
+            ]
+          },
+          {
+            "week": 9,
+            "topics": [
+              { "title": "File Handling in Python" },
+              { "title": "Reading/Writing Text Files" }
+            ]
+          },
+          {
+            "week": 10,
+            "topics": [
+              { "title": "Error Handling with Try/Except" },
+              { "title": "Custom Exceptions and Debugging" },
+              { "title": "Quiz 4: Week 8 + Week 9 + Week 10", "type": "quiz" }
+            ]
+          },
+          {
+            "week": 11,
+            "topics": [
+              { "title": "Introduction to Object-Oriented Programming" },
+              { "title": "Classes, Objects, and Methods" }
+            ]
+          },
+          {
+            "week": 12,
+            "topics": [
+              { "title": "Final Project Overview" },
+              { "title": "Course Review and Practice" },
+              { "title": "Final Exam", "type": "midterm" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  
