@@ -1,9 +1,9 @@
+import { useContext, useState } from 'react';
 import { FaBell } from "react-icons/fa";
 import { IoPersonCircleSharp } from 'react-icons/io5';
+import { Authcontext } from "../../context/AuthProvider";
 import Banner from "./Banner";
 import EnrolledCourses from "./EnrolledCourses";
-import { useContext, useState } from 'react';
-import { Authcontext } from "../../context/AuthProvider";
 
 const Home = () =>{ 
     const [imageError, setImageError] = useState(false);
@@ -25,7 +25,7 @@ const Home = () =>{
     return (
         <div className="">
             {/* Top Navigation Bar */}
-            <div className="top-6 ms-5 w-[1140px] flex justify-between items-center text-white z-50">
+            <div className="top-6 ms-5 w-auto flex flex-row justify-between items-center text-white z-50">
                 {/* User Section */}
                 <div className="flex items-center gap-3">
                     {users?.photoURL && !imageError ? (
