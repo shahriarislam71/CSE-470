@@ -39,7 +39,7 @@ const EnrolledCourseSideBar = () => {
                 <div className="drawer-side">
                     <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
                     <ul className="background rounded-lg menu sidebar text-base-content min-h-full w-80 p-4">
-                        <Link title='Back to Student Dashboard' to={'/studentdashboard'}><FaArrowLeft className='w-10 h-10 p-2 border-2 rounded-full mb-4'></FaArrowLeft ></Link>
+                        <Link title='Back to Student Dashboard' to={'/home'}><FaArrowLeft className='w-10 h-10 p-2 border-2 rounded-full mb-4'></FaArrowLeft ></Link>
                         {/* Course Materials */}
                         <div>
                             <p className={isActiveSection([

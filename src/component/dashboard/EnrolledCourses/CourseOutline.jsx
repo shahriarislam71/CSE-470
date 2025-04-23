@@ -1,25 +1,34 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 const CourseOutline = () => {
+  const { courseTitle } = useParams(); // 🔥 Get course ID from URL (e.g. "CSE430")
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch from JSON Server (adjust the ID as needed)
-    axios.get('http://localhost:3001/courseOutlines/2')
+    axios.get('http://localhost:3001/courseOutlines')
       .then((res) => {
-        setCourse(res.data);
+        const matchedCourse = res.data.find(c => c.courseId === courseTitle);
+        setCourse(matchedCourse || null);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Failed to fetch course outline", err);
         setLoading(false);
       });
-  }, []);
+  }, [courseTitle]);
 
   if (loading) return <p className="text-center mt-10">Loading Course Outline...</p>;
-  if (!course) return <p className="text-center text-red-600 mt-10">Course data not available.</p>;
+
+  if (!course) {
+    return (
+      <p className="text-center text-red-600 mt-10">
+        No course outline found for "<strong>{courseTitle}</strong>" 😕
+      </p>
+    );
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -46,7 +55,6 @@ const CourseOutline = () => {
             <h3 className="text-lg font-bold text-blue-700 mb-2">📆 Week {week.week}</h3>
             <div className="space-y-2">
               {week.topics.map((topic, i) => {
-                // Midterm or final exam
                 if (topic.type === "midterm") {
                   return (
                     <div key={i}>
@@ -58,7 +66,6 @@ const CourseOutline = () => {
                   );
                 }
 
-                // Quiz row
                 if (topic.type === "quiz") {
                   return (
                     <div
@@ -70,7 +77,6 @@ const CourseOutline = () => {
                   );
                 }
 
-                // Normal topic
                 return (
                   <div
                     key={i}
