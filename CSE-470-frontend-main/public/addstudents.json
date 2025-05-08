@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "name": "John Smith",
+        "email": "john.smith@example.com",
+        "studentId": "20201001",
+        "program": "Computer Science",
+        "enrolled_courses": ["CSE110", "CSE430"]
+    },
+    {
+        "id": 2,
+        "name": "Emily Johnson",
+        "email": "emily.johnson@example.com",
+        "studentId": "20201002",
+        "program": "Data Science",
+        "enrolled_courses": ["CSE430", "CSE422"]
+    },
+    {
+        "id": 3,
+        "name": "Michael Brown",
+        "email": "michael.brown@example.com",
+        "studentId": "20201003",
+        "program": "Web Development",
+        "enrolled_courses": ["CSE370", "CSE110"]
+    },
+    {
+        "id": 4,
+        "name": "Sarah Davis",
+        "email": "sarah.davis@example.com",
+        "studentId": "20201004",
+        "program": "Cybersecurity",
+        "enrolled_courses": ["CSE410"]
+    },
+    {
+        "id": 5,
+        "name": "David Wilson",
+        "email": "david.wilson@example.com",
+        "studentId": "20201005",
+        "program": "Machine Learning",
+        "enrolled_courses": ["CSE422", "CSE430"]
+    },
+    {
+        "id": 6,
+        "name": "test",
+        "email": "test@example.com",
+        "studentId": "12345678",
+        "program": "Computer Science",
+        "enrolled_courses": []
+    }
+]

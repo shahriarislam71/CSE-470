@@ -1,0 +1,341 @@
+[
+    {
+        "courseTitle": "CSE110",
+        "courseName": "Introduction to Programming",
+        "instructor": "John Doe",
+        "outline": [
+            "Introduction to Programming Concepts",
+            "Variables and Data Types",
+            "Control Structures",
+            "Functions and Methods",
+            "Arrays and Collections"
+        ],
+        "materials": [
+            {
+                "type": "lecture",
+                "title": "Introduction to Programming",
+                "url": "/materials/intro.pdf"
+            },
+            {
+                "type": "assignment",
+                "title": "Programming Basics",
+                "dueDate": "2024-12-15",
+                "url": "/assignments/basics.pdf"
+            }
+        ],
+        "otherResources": [
+            {
+                "id": 1,
+                "type": "book",
+                "title": "Introduction to Python Programming",
+                "author": "Mark Lutz",
+                "description": "A comprehensive introduction to Python programming for beginners",
+                "imageUrl": "https://m.media-amazon.com/images/I/71NUzjuAQnL._AC_UF1000,1000_QL80_.jpg",
+                "link": "https://www.amazon.com/Learning-Python-5th-Mark-Lutz/dp/1449355730",
+                "date": "2024-01-20"
+            },
+            {
+                "id": 2,
+                "type": "video",
+                "title": "Programming Fundamentals Course",
+                "creator": "freeCodeCamp",
+                "description": "A full course on programming fundamentals that covers all the basics",
+                "imageUrl": "https://i.ytimg.com/vi/rfscVS0vtbw/maxresdefault.jpg",
+                "link": "https://www.youtube.com/watch?v=rfscVS0vtbw",
+                "duration": "4h 30m",
+                "date": "2024-01-15"
+            },
+            {
+                "id": 3,
+                "type": "tool",
+                "title": "Python Tutor",
+                "creator": "Philip Guo",
+                "description": "Visualize code execution step by step",
+                "imageUrl": "https://pythontutor.com/images/og-pythontutor-logo.png",
+                "link": "https://pythontutor.com/",
+                "date": "2024-01-25"
+            },
+            {
+                "id": 4,
+                "type": "article",
+                "title": "Understanding Variables in Programming",
+                "author": "John Smith",
+                "description": "A detailed explanation of how variables work across programming languages",
+                "link": "https://www.freecodecamp.org/news/python-variables-and-types-explained/",
+                "date": "2024-02-01",
+                "readTime": "15 min"
+            }
+        ],
+        "announcements": [
+            {
+                "id": 1,
+                "title": "Welcome to Introduction to Programming",
+                "content": "Welcome to CSE110! I'm excited to have you all in this course. Please review the syllabus and let me know if you have any questions.",
+                "date": "2024-01-15T10:00:00Z",
+                "author": "John Doe",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff",
+                "important": true
+            },
+            {
+                "id": 2,
+                "title": "First Assignment Posted",
+                "content": "The first assignment has been posted. Please complete it by the due date. Feel free to use the discussion forum if you have any questions.",
+                "date": "2024-01-20T14:30:00Z",
+                "author": "John Doe",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff",
+                "important": false
+            },
+            {
+                "id": 3,
+                "title": "Office Hours Change",
+                "content": "Please note that my office hours will be changed to Tuesdays and Thursdays from 2-4pm starting next week.",
+                "date": "2024-01-25T09:15:00Z",
+                "author": "John Doe",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff",
+                "important": true
+            }
+        ]
+    },
+    {
+        "courseTitle": "CSE430",
+        "courseName": "Data Science Essentials",
+        "instructor": "Jane Smith",
+        "outline": [
+            "Introduction to Data Science",
+            "Data Cleaning and Preprocessing",
+            "Exploratory Data Analysis",
+            "Machine Learning Basics",
+            "Data Visualization"
+        ],
+        "materials": [
+            {
+                "type": "lecture",
+                "title": "Data Science Overview",
+                "url": "/materials/data-science.pdf"
+            },
+            {
+                "type": "assignment",
+                "title": "Data Analysis",
+                "dueDate": "2024-12-20",
+                "url": "/assignments/data-analysis.pdf"
+            }
+        ],
+        "otherResources": [
+            {
+                "id": 1,
+                "type": "dataset",
+                "title": "Kaggle Datasets Collection",
+                "creator": "Kaggle",
+                "description": "A collection of various datasets for practice and experimentation",
+                "imageUrl": "https://www.kaggle.com/static/images/site-logo.svg",
+                "link": "https://www.kaggle.com/datasets",
+                "date": "2024-01-10"
+            },
+            {
+                "id": 2,
+                "type": "book",
+                "title": "Python for Data Analysis",
+                "author": "Wes McKinney",
+                "description": "A comprehensive guide to using Python for data analysis",
+                "imageUrl": "https://m.media-amazon.com/images/I/81UoUNiJTtL._AC_UF1000,1000_QL80_.jpg",
+                "link": "https://www.amazon.com/Python-Data-Analysis-Wrangling-IPython/dp/1491957662",
+                "date": "2024-01-15"
+            },
+            {
+                "id": 3,
+                "type": "tool",
+                "title": "Google Colab",
+                "creator": "Google",
+                "description": "Free Jupyter notebook environment that requires no setup",
+                "imageUrl": "https://colab.research.google.com/img/colab_favicon_256px.png",
+                "link": "https://colab.research.google.com/",
+                "date": "2024-01-20"
+            },
+            {
+                "id": 4,
+                "type": "course",
+                "title": "Machine Learning Crash Course",
+                "creator": "Google",
+                "description": "Google's fast-paced, practical introduction to machine learning",
+                "imageUrl": "https://developers.google.com/static/machine-learning/crash-course/images/ml_crash_course_social.png",
+                "link": "https://developers.google.com/machine-learning/crash-course",
+                "date": "2024-02-05",
+                "duration": "15 hours"
+            },
+            {
+                "id": 5,
+                "type": "cheatsheet",
+                "title": "Pandas Cheat Sheet",
+                "creator": "DataCamp",
+                "description": "Quick reference guide for Pandas operations",
+                "link": "https://www.datacamp.com/cheat-sheet/pandas-cheat-sheet-for-data-science-in-python",
+                "date": "2024-01-30"
+            }
+        ],
+        "announcements": [
+            {
+                "id": 1,
+                "title": "Welcome to Data Science Essentials",
+                "content": "Welcome to CSE430! This course will introduce you to the fundamentals of data science. We'll be using Python for most of our work, so please make sure you have it installed.",
+                "date": "2024-01-16T11:30:00Z",
+                "author": "Jane Smith",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Jane+Smith&background=8B5CF6&color=fff",
+                "important": true
+            },
+            {
+                "id": 2,
+                "title": "Dataset Resources",
+                "content": "I've added some additional dataset resources to the course page. These will be useful for your upcoming projects.",
+                "date": "2024-01-22T15:45:00Z",
+                "author": "Jane Smith",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Jane+Smith&background=8B5CF6&color=fff",
+                "important": false
+            },
+            {
+                "id": 3,
+                "title": "Guest Lecture Announcement",
+                "content": "We will have a guest lecture from Dr. Alex Johnson, a data scientist at Google, next Thursday. Attendance is mandatory as this will be part of your final grade.",
+                "date": "2024-01-28T10:00:00Z",
+                "author": "Jane Smith",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Jane+Smith&background=8B5CF6&color=fff",
+                "important": true
+            }
+        ]
+    },
+    {
+        "courseTitle": "CSE370",
+        "courseName": "Web Development Bootcamp",
+        "instructor": "Michael Johnson",
+        "outline": [
+            "HTML Fundamentals",
+            "CSS Styling",
+            "JavaScript Basics",
+            "Frontend Frameworks",
+            "Backend Development"
+        ],
+        "materials": [
+            {
+                "type": "lecture",
+                "title": "Web Development Fundamentals",
+                "url": "/materials/web-dev.pdf"
+            },
+            {
+                "type": "assignment",
+                "title": "Create a Website",
+                "dueDate": "2024-12-25",
+                "url": "/assignments/website.pdf"
+            }
+        ],
+        "otherResources": [
+            {
+                "id": 1,
+                "type": "documentation",
+                "title": "MDN Web Docs",
+                "creator": "Mozilla",
+                "description": "Comprehensive web development documentation",
+                "imageUrl": "https://developer.mozilla.org/apple-touch-icon.6803c6f0.png",
+                "link": "https://developer.mozilla.org/",
+                "date": "2024-01-05"
+            },
+            {
+                "id": 2,
+                "type": "tool",
+                "title": "CodePen",
+                "creator": "CodePen Team",
+                "description": "Online code editor for front-end development",
+                "imageUrl": "https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico",
+                "link": "https://codepen.io/",
+                "date": "2024-01-10"
+            },
+            {
+                "id": 3,
+                "type": "video",
+                "title": "Complete React Tutorial",
+                "creator": "Net Ninja",
+                "description": "Full React tutorial series covering all the fundamentals",
+                "imageUrl": "https://i.ytimg.com/vi/j942wKiXFu8/maxresdefault.jpg",
+                "link": "https://www.youtube.com/playlist?list=PL4cUxeGkcC9gZD-Tvwfod2gaISzfRiP9d",
+                "duration": "12h 30m",
+                "date": "2024-01-20"
+            },
+            {
+                "id": 4,
+                "type": "practice",
+                "title": "JavaScript 30",
+                "creator": "Wes Bos",
+                "description": "30 Day Vanilla JS Coding Challenge",
+                "imageUrl": "https://javascript30.com/images/JS3-social-share.png",
+                "link": "https://javascript30.com/",
+                "date": "2024-02-01",
+                "duration": "30 days"
+            },
+            {
+                "id": 5,
+                "type": "book",
+                "title": "Eloquent JavaScript",
+                "author": "Marijn Haverbeke",
+                "description": "A comprehensive guide to JavaScript programming",
+                "imageUrl": "https://eloquentjavascript.net/img/cover.jpg",
+                "link": "https://eloquentjavascript.net/",
+                "date": "2024-01-15"
+            },
+            {
+                "id": 6,
+                "type": "community",
+                "title": "Stack Overflow",
+                "description": "Community for developers to learn and share knowledge",
+                "imageUrl": "https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png",
+                "link": "https://stackoverflow.com/questions/tagged/javascript",
+                "date": "2024-01-25"
+            }
+        ],
+        "announcements": [
+            {
+                "id": 1,
+                "title": "Welcome to Web Development Bootcamp",
+                "content": "Welcome to the Web Development Bootcamp! In this course, you'll learn how to build modern web applications from scratch. We'll be using VS Code as our primary IDE.",
+                "date": "2024-01-17T09:00:00Z",
+                "author": "Michael Johnson",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Michael+Johnson&background=4F46E5&color=fff",
+                "important": true
+            },
+            {
+                "id": 2,
+                "title": "Project Groups",
+                "content": "Project groups have been formed and posted on the course page. Please check your assigned group and contact your team members this week.",
+                "date": "2024-01-24T16:30:00Z",
+                "author": "Michael Johnson",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Michael+Johnson&background=4F46E5&color=fff",
+                "important": true
+            },
+            {
+                "id": 3,
+                "title": "Additional Resources for React",
+                "content": "I've posted some additional resources for learning React on the course page. These include tutorial links and example code repositories.",
+                "date": "2024-01-30T13:15:00Z",
+                "author": "Michael Johnson",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Michael+Johnson&background=4F46E5&color=fff",
+                "important": false
+            },
+            {
+                "id": 4,
+                "title": "Midterm Exam Date",
+                "content": "The midterm exam will be held on February 15th. It will cover all material taught up to week 5. A review session will be held the week before.",
+                "date": "2024-02-01T10:45:00Z",
+                "author": "Michael Johnson",
+                "authorRole": "Instructor",
+                "authorAvatar": "https://ui-avatars.com/api/?name=Michael+Johnson&background=4F46E5&color=fff",
+                "important": true
+            }
+        ]
+    }
+]
