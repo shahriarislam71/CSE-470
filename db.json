@@ -16,7 +16,8 @@
               { "title": "Introduction to Python" },
               { "title": "Installing Python and VS Code" },
               { "title": "Running Your First Python Script" }
-            ]
+            ] 
+            
           },
           {
             "week": 2,
@@ -284,4 +285,3 @@
     ]
   }
 
-  
