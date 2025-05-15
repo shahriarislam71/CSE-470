@@ -168,3 +168,37 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+// getting assignment by course id
+
+app.post("/assignments", async (req, res) => {
+  try {
+    const { courseTitle, title, description, dueDate, postedBy } = req.body;
+
+    if (!courseTitle || !title || !dueDate || !postedBy) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const newAssignment = {
+      courseTitle,
+      title,
+      description,
+      dueDate: new Date(dueDate),
+      postedBy,
+      createdAt: new Date()
+    };
+
+    const result = await assignmentsCollection.insertOne(newAssignment);
+    res.status(201).json({
+      message: "Assignment created successfully",
+      assignment: { id: result.insertedId, ...newAssignment }
+    });
+  } catch (err) {
+    console.error("Error creating assignment:", err);
+    res.status(500).json({ message: "Server error while creating assignment" });
+  }
+});
+
+
+
