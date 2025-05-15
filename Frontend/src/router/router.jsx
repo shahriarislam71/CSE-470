@@ -31,6 +31,10 @@ import Video from "../component/dashboard/EnrolledCourses/Video";
 import EnrolledCourseSideBar from "../layout/EnrolledCourseSideBar";
 
 import { Authcontext } from '../context/AuthProvider';
+import AdminDashboard from '../layout/AdminDashboard';
+import AddStudent from '../component/dashboard/AdminDashboard/AddStudent';
+import AddTeacher from '../component/dashboard/AdminDashboard/AddTeacher';
+import AdminDashboardHome from '../component/dashboard/AdminDashboard/AdminDashboardHome';
 
 // Generic error page for route errors
 function ErrorPage({ error }) {
@@ -121,6 +125,21 @@ const router = createBrowserRouter([
       { path: 'inbox', element: <TeacherInbox /> },
     ],
   },
+  {
+  path: '/admin',
+  element: (
+    <Protected>
+      <AdminDashboard />
+    </Protected>
+  ),
+  errorElement: <ErrorPage />,
+  children: [
+    { index: true, element: <AdminDashboardHome /> },
+    { path: 'dashboard', element: <AdminDashboardHome /> },
+    { path: 'add-student', element: <AddStudent /> },
+    { path: 'add-teacher', element: <AddTeacher /> },
+  ],
+},
 ]);
 
 export default router;
