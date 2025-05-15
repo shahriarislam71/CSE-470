@@ -35,6 +35,23 @@ import AdminDashboard from '../layout/AdminDashboard';
 import AddStudent from '../component/dashboard/AdminDashboard/AddStudent';
 import AddTeacher from '../component/dashboard/AdminDashboard/AddTeacher';
 import AdminDashboardHome from '../component/dashboard/AdminDashboard/AdminDashboardHome';
+import CourseManagementLayout from '../layout/CourseManagementLayout';
+import CourseOverview from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseOverview';
+import CreateSection from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CreateSection';
+import CourseSections from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseSections';
+import CourseAnnouncements from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseAnnouncements';
+import CourseStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseStudents';
+import AddStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/AddStudents';
+import CourseChatrooms from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseChatrooms';
+import CourseAssignments from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseAssignments';
+import CourseMaterials from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseMaterials';
+import CourseVideos from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseVideos';
+import CourseNotes from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseNotes';
+import CoursePractice from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CoursePractice';
+import SectionAnnouncements from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionAnnouncements';
+import SectionStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionStudents';
+import SectionChatrooms from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionChatrooms';
+import SectionAssignments from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionAssignments';
 
 // Generic error page for route errors
 function ErrorPage({ error }) {
@@ -140,6 +157,36 @@ const router = createBrowserRouter([
     { path: 'add-teacher', element: <AddTeacher /> },
   ],
 },
+
+{
+  path: '/teacher/courses/:courseId',
+  element: (
+    <Protected>
+      <CourseManagementLayout />
+    </Protected>
+  ),
+  errorElement: <ErrorPage />,
+  children: [
+    { index: true, element: <CourseOverview /> },
+    { path: 'overview', element: <CourseOverview /> },
+    // Course Materials
+    { path: 'materials', element: <CourseMaterials /> },
+    { path: 'materials/videos', element: <CourseVideos /> },
+    { path: 'materials/notes', element: <CourseNotes /> },
+    { path: 'materials/practice', element: <CoursePractice /> },
+    // Section-specific routes
+    { 
+      path: 'sections/:sectionId',
+      children: [
+        { path: 'announcements', element: <SectionAnnouncements /> },
+        { path: 'students', element: <SectionStudents /> },
+        // { path: 'add-students', element: <AddStudentsToSection /> },
+        { path: 'chatrooms', element: <SectionChatrooms /> },
+        { path: 'assignments', element: <SectionAssignments /> }
+      ]
+    }
+  ],
+}
 ]);
 
 export default router;

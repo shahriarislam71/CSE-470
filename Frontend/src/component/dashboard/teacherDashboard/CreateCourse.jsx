@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import { Authcontext } from '../../../context/AuthProvider';
 
 const CreateCourse = () => {
+  const { users } = useContext(Authcontext);
+  console.log(users)
   const [formData, setFormData] = useState({
     courseName: '',
     courseCode: '',
     facultyInitial: '',
     description: '',
-    image: null,
-    previewImage: null
+    imageUrl: ''
   });
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,25 +25,86 @@ const CreateCourse = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          image: file,
-          previewImage: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload image to server
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await axios.post('http://localhost:5000/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: response.data.imageUrl
+      }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image');
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+    
+    // Validate form
+    if (!formData.courseName || !formData.courseCode || !formData.facultyInitial) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    if (!formData.imageUrl) {
+      alert('Please upload a course image');
+      return;
+    }
+
+    if (!users?.email) {
+      alert('User email not found. Please log in again.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Include user email in the course data
+      const courseData = {
+        ...formData,
+        email: users.email // Add the user's email to the course data
+      };
+
+      const response = await axios.post('http://localhost:5000/courses', courseData);
+      console.log('Course created:', response.data);
+      alert('Course created successfully!');
+      // Reset form
+      setFormData({
+        courseName: '',
+        courseCode: '',
+        facultyInitial: '',
+        description: '',
+        imageUrl: ''
+      });
+      setPreviewImage(null);
+    } catch (error) {
+      console.error('Error creating course:', error);
+      alert('Failed to create course');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,9 +129,9 @@ const CreateCourse = () => {
             <div className="flex items-center space-x-6">
               <div className="relative group">
                 <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-purple-200 group-hover:border-purple-400 transition-all duration-300">
-                  {formData.previewImage ? (
+                  {previewImage ? (
                     <img 
-                      src={formData.previewImage} 
+                      src={previewImage} 
                       alt="Course preview" 
                       className="w-full h-full object-cover"
                     />
@@ -79,11 +146,17 @@ const CreateCourse = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
+                  disabled={isUploading}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-gray-600">Upload a high-quality image that represents your course (JPEG, PNG). Recommended size: 800x450px.</p>
+                <p className="text-sm text-gray-600">
+                  {isUploading ? 'Uploading image...' : 'Upload a high-quality image that represents your course (JPEG, PNG). Recommended size: 800x450px.'}
+                </p>
+                {formData.imageUrl && !isUploading && (
+                  <p className="text-xs text-green-600 mt-1">Image uploaded successfully!</p>
+                )}
               </div>
             </div>
           </div>
@@ -185,9 +258,10 @@ const CreateCourse = () => {
               type="submit"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={isSubmitting || isUploading}
+              className={`px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 ${(isSubmitting || isUploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Create Course
+              {isSubmitting ? 'Creating...' : 'Create Course'}
             </motion.button>
           </div>
         </form>
