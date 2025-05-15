@@ -5,10 +5,9 @@ import { Authcontext } from "../../context/AuthProvider";
 import Banner from "./Banner";
 import EnrolledCourses from "./EnrolledCourses";
 
-const Home = () =>{ 
+const Home = () => { 
     const [imageError, setImageError] = useState(false);
-    const {users,loading} = useContext(Authcontext)
- 
+    const { users, loading } = useContext(Authcontext);
 
     const handleImageError = () => {
         setImageError(true);
@@ -23,9 +22,9 @@ const Home = () =>{
     }
 
     return (
-        <div className="">
+        <div>
             {/* Top Navigation Bar */}
-            <div className="top-6 ms-5 w-auto flex flex-row justify-between items-center text-white z-50">
+            <div className="top-6 ms-5 w-[1140px] flex justify-between items-center text-white z-50">
                 {/* User Section */}
                 <div className="flex items-center gap-3">
                     {users?.photoURL && !imageError ? (
@@ -39,7 +38,7 @@ const Home = () =>{
                     ) : (
                         <IoPersonCircleSharp className="text-3xl border-solid border-2 border-indigo-500 rounded-full text-color w-10" />
                     )}
-                    <div className="">
+                    <div>
                         <p className="text-xl font-semibold text-color">
                             {users?.displayName || 'Guest User'}
                         </p>

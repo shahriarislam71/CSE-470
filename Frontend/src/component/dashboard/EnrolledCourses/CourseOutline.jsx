@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const CourseOutline = () => {
@@ -8,7 +8,7 @@ const CourseOutline = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/courseOutlines')
+    axios.get('http://localhost:3000/courseOutlines')
       .then((res) => {
         const matchedCourse = res.data.find(c => c.courseId === courseTitle);
         setCourse(matchedCourse || null);
