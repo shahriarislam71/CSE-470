@@ -17,6 +17,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.xq01pu7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -53,6 +54,10 @@ async function run() {
     const teachersCollection = db.collection("teachers");
     const studentsCollection = db.collection("students");
     const coursesCollection = db.collection("courses"); // New collection for courses
+
+    // Mount assignment routes after db is available
+    const assignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
+    app.use("/api/assignments", assignmentRoutes(db));
 
     // Image Upload Endpoint
     app.post("/upload", upload.single("image"), async (req, res) => {
@@ -433,37 +438,6 @@ async function run() {
           .json({ message: "Server error while fetching teachers" });
       }
     });
-
-
-    // getting assignment by course id
-
-app.post("/assignments", async (req, res) => {
-  try {
-    const { courseTitle, title, description, dueDate, postedBy } = req.body;
-
-    if (!courseTitle || !title || !dueDate || !postedBy) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const newAssignment = {
-      courseTitle,
-      title,
-      description,
-      dueDate: new Date(dueDate),
-      postedBy,
-      createdAt: new Date()
-    };
-
-    const result = await assignmentsCollection.insertOne(newAssignment);
-    res.status(201).json({
-      message: "Assignment created successfully",
-      assignment: { id: result.insertedId, ...newAssignment }
-    });
-  } catch (err) {
-    console.error("Error creating assignment:", err);
-    res.status(500).json({ message: "Server error while creating assignment" });
-  }
-});
 
 
     console.log("Successfully connected to MongoDB!");
