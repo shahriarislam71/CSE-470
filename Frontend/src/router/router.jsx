@@ -52,6 +52,7 @@ import SectionAnnouncements from '../component/dashboard/teacherDashboard/teache
 import SectionStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionStudents';
 import SectionChatrooms from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionChatrooms';
 import SectionAssignments from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionAssignments';
+import AddStudentsToSection from '../component/dashboard/teacherDashboard/teacherCourseDashboard/AddStudentsToSection';
 
 // Generic error page for route errors
 function ErrorPage({ error }) {
@@ -176,11 +177,11 @@ const router = createBrowserRouter([
     { path: 'materials/practice', element: <CoursePractice /> },
     // Section-specific routes
     { 
-      path: 'sections/:sectionId',
+      path: 'sections/:sectionName',
       children: [
         { path: 'announcements', element: <SectionAnnouncements /> },
         { path: 'students', element: <SectionStudents /> },
-        // { path: 'add-students', element: <AddStudentsToSection /> },
+        { path: 'add-students', element: <AddStudentsToSection /> },
         { path: 'chatrooms', element: <SectionChatrooms /> },
         { path: 'assignments', element: <SectionAssignments /> }
       ]

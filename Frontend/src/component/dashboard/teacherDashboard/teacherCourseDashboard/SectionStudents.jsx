@@ -1,6 +1,7 @@
-import React from 'react';
+
 
 const SectionStudents = () => {
+    const { sectionName } = useParams();
     return (
         <div>
             

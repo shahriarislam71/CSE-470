@@ -224,7 +224,7 @@ async function run() {
       }
     });
 
-    // update the code
+    // update the name and other details of the course
     app.put("/courses/:id", upload.single("image"), async (req, res) => {
       try {
         const { id } = req.params;

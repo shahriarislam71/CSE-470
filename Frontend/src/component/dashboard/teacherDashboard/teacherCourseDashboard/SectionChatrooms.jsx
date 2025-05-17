@@ -1,6 +1,6 @@
-import React from 'react';
 
 const SectionChatrooms = () => {
+    const { sectionName } = useParams();
     return (
         <div>
             

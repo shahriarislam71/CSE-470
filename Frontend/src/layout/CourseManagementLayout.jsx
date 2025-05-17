@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -14,6 +14,7 @@ import {
   FiChevronRight,
   FiUserPlus
 } from 'react-icons/fi';
+import Swal from 'sweetalert2';
 
 const CourseManagementLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -21,6 +22,43 @@ const CourseManagementLayout = () => {
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
   const { courseId } = useParams();
+  const [courseDetails, setCourseDetails] = useState(null);
+
+  // Fetch course details and sections
+  useEffect(() => {
+    const fetchCourseAndSections = async () => {
+      try {
+        // Fetch course details
+        const courseRes = await fetch(`http://localhost:5000/courses/${courseId}`);
+        const courseData = await courseRes.json();
+        setCourseDetails(courseData);
+
+        // Fetch sections for this course
+        const sectionsRes = await fetch(`http://localhost:5000/sections/${courseData.courseCode}`);
+        const sectionsData = await sectionsRes.json();
+        
+        if (sectionsData.sections) {
+          const formattedSections = sectionsData.sections.map((sectionName, index) => ({
+            id: `${courseData.courseCode}-${index}`,
+            name: sectionName,
+            isExpanded: false,
+            items: [
+              { path: `/teacher/courses/${courseId}/sections/${sectionName}/announcements`, name: 'Announcements', icon: <FiMessageSquare /> },
+              { path: `/teacher/courses/${courseId}/sections/${sectionName}/students`, name: 'Students', icon: <FiUsers /> },
+              { path: `/teacher/courses/${courseId}/sections/${sectionName}/add-students`, name: 'Add Students', icon: <FiUserPlus /> },
+              { path: `/teacher/courses/${courseId}/sections/${sectionName}/chatrooms`, name: 'Chatrooms', icon: <FiMessageSquare /> },
+              { path: `/teacher/courses/${courseId}/sections/${sectionName}/assignments`, name: 'Assignments', icon: <FiFileText /> }
+            ]
+          }));
+          setSections(formattedSections);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchCourseAndSections();
+  }, [courseId, showAddSectionModal]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -34,26 +72,43 @@ const CourseManagementLayout = () => {
     ));
   };
 
-  const handleAddSection = () => {
+  const handleAddSection = async () => {
     if (!newSectionName.trim()) return;
     
-    const newSectionId = `sec${Date.now()}`;
-    const newSection = {
-      id: newSectionId,
-      name: newSectionName,
-      isExpanded: false,
-      items: [
-        { path: `/teacher/courses/${courseId}/sections/${newSectionId}/announcements`, name: 'Announcements', icon: <FiMessageSquare /> },
-        { path: `/teacher/courses/${courseId}/sections/${newSectionId}/students`, name: 'Students', icon: <FiUsers /> },
-        { path: `/teacher/courses/${courseId}/sections/${newSectionId}/add-students`, name: 'Add Students', icon: <FiUserPlus /> },
-        { path: `/teacher/courses/${courseId}/sections/${newSectionId}/chatrooms`, name: 'Chatrooms', icon: <FiMessageSquare /> },
-        { path: `/teacher/courses/${courseId}/sections/${newSectionId}/assignments`, name: 'Assignments', icon: <FiFileText /> }
-      ]
-    };
-    
-    setSections([...sections, newSection]);
-    setNewSectionName('');
-    setShowAddSectionModal(false);
+    try {
+      const response = await fetch('http://localhost:5000/sections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseCode: courseDetails.courseCode,
+          email: courseDetails.email,
+          sectionName: newSectionName
+        })
+      });
+
+      if (response.ok) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Section created successfully',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+        setNewSectionName('');
+        setShowAddSectionModal(false);
+      } else {
+        throw new Error('Failed to create section');
+      }
+    } catch (error) {
+      console.error('Error creating section:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to create section',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
   };
 
   const navItems = [
@@ -134,9 +189,9 @@ const CourseManagementLayout = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="w-72 bg-white shadow-2xl z-10 border-r border-indigo-100"
+            className="w-72 bg-white shadow-2xl z-10 border-r border-indigo-100 flex flex-col"
           >
-            <div className="p-6 h-full flex flex-col">
+            <div className="p-6 h-full flex flex-col overflow-hidden">
               {/* Logo/Header */}
               <div className="mb-8">
                 <motion.h1 
@@ -151,7 +206,7 @@ const CourseManagementLayout = () => {
               </div>
 
               {/* Navigation */}
-              <nav className="flex-1">
+              <nav className="flex-1 overflow-y-auto">
                 <ul className="space-y-1">
                   {navItems.map((item) => (
                     <li key={item.path || item.name} className="group">
@@ -227,52 +282,58 @@ const CourseManagementLayout = () => {
                     </div>
                   </li>
 
-                  {sections.map((section) => (
-                    <li key={section.id} className="group">
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all"
-                      >
-                        <div className="flex items-center">
-                          <FiBook className="mr-3 text-lg" />
-                          <span>{section.name}</span>
-                        </div>
-                        {section.isExpanded ? (
-                          <FiChevronDown className="text-gray-500" />
-                        ) : (
-                          <FiChevronRight className="text-gray-500" />
-                        )}
-                      </button>
-                      
-                      <AnimatePresence>
-                        {section.isExpanded && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="ml-10 pl-2 border-l-2 border-purple-100 overflow-hidden"
-                          >
-                            {section.items.map((item) => (
-                              <NavLink
-                                key={`${section.id}-${item.path}`}
-                                to={item.path}
-                                className={({ isActive }) =>
-                                  `flex items-center py-2 px-3 text-sm rounded-md transition-all ${
-                                    isActive
-                                      ? 'bg-purple-50 text-purple-600 font-medium'
-                                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
-                                  }`
-                                }
-                              >
-                                <span className="mr-2">{item.icon}</span>
-                                <span>{item.name}</span>
-                              </NavLink>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                  {sections.length > 0 ? (
+                    sections.map((section) => (
+                      <li key={section.id} className="group">
+                        <button
+                          onClick={() => toggleSection(section.id)}
+                          className="flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all"
+                        >
+                          <div className="flex items-center">
+                            <FiBook className="mr-3 text-lg" />
+                            <span className="truncate">{section.name}</span>
+                          </div>
+                          {section.isExpanded ? (
+                            <FiChevronDown className="text-gray-500" />
+                          ) : (
+                            <FiChevronRight className="text-gray-500" />
+                          )}
+                        </button>
+                        
+                        <AnimatePresence>
+                          {section.isExpanded && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="ml-10 pl-2 border-l-2 border-purple-100 overflow-hidden"
+                            >
+                              {section.items.map((item) => (
+                                <NavLink
+                                  key={`${section.id}-${item.path}`}
+                                  to={item.path}
+                                  className={({ isActive }) =>
+                                    `flex items-center py-2 px-3 text-sm rounded-md transition-all ${
+                                      isActive
+                                        ? 'bg-purple-50 text-purple-600 font-medium'
+                                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                                    }`
+                                  }
+                                >
+                                  <span className="mr-2">{item.icon}</span>
+                                  <span className="truncate">{item.name}</span>
+                                </NavLink>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-3 py-2 text-sm text-gray-500 italic">
+                      No sections created yet
                     </li>
-                  ))}
+                  )}
                 </ul>
               </nav>
 
