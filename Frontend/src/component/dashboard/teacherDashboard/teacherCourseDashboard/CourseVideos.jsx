@@ -2,8 +2,8 @@ import React from 'react';
 
 const CourseVideos = () => {
     return (
-        <div>
-            
+        <div className='text-center text-black'>
+            hei i here i am
         </div>
     );
 };
