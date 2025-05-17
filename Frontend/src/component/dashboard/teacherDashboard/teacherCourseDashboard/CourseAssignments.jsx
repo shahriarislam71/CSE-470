@@ -1,64 +1,77 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-const CourseAssignments = ({ course }) => {
+const CourseAssignments = () => {
+  const { courseId, sectionName } = useParams();
+  const [course, setCourse] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     title: "",
     questions: "",
     dueDate: "",
-    file: null,
-    section: "",
   });
+
+  const BASE_URL = "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/courses/${courseId}`);
+        setCourse(res.data);
+      } catch (err) {
+        console.error("Failed to fetch course details", err);
+      }
+    };
+
+    if (courseId) fetchCourse();
+  }, [courseId]);
 
   const fetchAssignments = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/assignments/${course._id}`
+        `${BASE_URL}/assignments?courseId=${courseId}&section=${sectionName}`
       );
       setAssignments(res.data);
     } catch (err) {
       console.error("Failed to fetch assignments", err);
+      setAssignments([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (course?._id) fetchAssignments();
-  }, [course]);
+    if (courseId && sectionName) fetchAssignments();
+  }, [courseId, sectionName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.questions || !form.dueDate || !form.file) return;
+    if (!form.title || !form.questions || !form.dueDate) return;
 
-    const formData = new FormData();
-    formData.append("title", form.title);
-    formData.append("questions", form.questions);
-    formData.append("dueDate", form.dueDate);
-    formData.append("section", form.section || "General");
-    formData.append("file", form.file);
-    formData.append("courseId", course._id);
-    formData.append("courseName", course.courseName);
+    const payload = {
+      title: form.title,
+      description: form.questions,
+      dueDate: form.dueDate,
+      courseId,
+      section: sectionName,
+      teacherEmail: "demo@bracu.edu.bd", // replace with dynamic value if needed
+    };
 
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/assignments`,
-        formData
-      );
-      setForm({ title: "", questions: "", dueDate: "", file: null, section: "" });
+      await axios.post(`${BASE_URL}/assignments`, payload);
+      setForm({ title: "", questions: "", dueDate: "" });
       fetchAssignments();
     } catch (err) {
       console.error("Error posting assignment", err);
+      alert("Upload failed: " + (err.response?.data?.message || err.message));
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/assignments/${id}`
-      );
+      await axios.delete(`${BASE_URL}/assignments/${id}`);
       fetchAssignments();
     } catch (err) {
       console.error("Error deleting assignment", err);
@@ -68,10 +81,9 @@ const CourseAssignments = ({ course }) => {
   return (
     <div className="p-6 w-full">
       <h1 className="text-3xl font-bold text-center text-purple-600 mb-8">
-        Manage Assignments for {course?.courseName}
+        Manage Assignments for {course?.courseName || courseId} ({sectionName})
       </h1>
 
-      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 shadow-lg rounded-xl mb-10 border border-gray-200 space-y-4"
@@ -105,31 +117,14 @@ const CourseAssignments = ({ course }) => {
           required
         />
 
-        <input
-          type="text"
-          placeholder="Section (optional)"
-          value={form.section}
-          onChange={(e) => setForm({ ...form, section: e.target.value })}
-          className="w-full px-4 py-2 border rounded"
-        />
-
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setForm({ ...form, file: e.target.files[0] })}
-          className="w-full"
-          required
-        />
-
         <button
           type="submit"
           className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 transition"
         >
-          Upload Assignment
+          Create Assignment
         </button>
       </form>
 
-      {/* Assignment List */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
           📝 Posted Assignments
@@ -150,19 +145,13 @@ const CourseAssignments = ({ course }) => {
               </h3>
               <p className="text-gray-700 mb-1">
                 <strong>Due:</strong>{" "}
-                {new Date(assignment.dueDate).toLocaleDateString()}
+                {assignment.dueDate
+                  ? new Date(assignment.dueDate).toLocaleDateString()
+                  : "No due date"}
               </p>
               <p className="text-gray-700 mb-2">
-                <strong>Questions:</strong> {assignment.questions}
+                <strong>Questions:</strong> {assignment.description}
               </p>
-              <a
-                href={assignment.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700 transition mr-4"
-              >
-                📄 View Assignment
-              </a>
               <button
                 onClick={() => handleDelete(assignment._id)}
                 className="inline-block bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition"

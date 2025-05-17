@@ -50,6 +50,9 @@ async function run() {
 
     // Initialize collections
     const db = client.db("education");
+    // Import your assignment routes and pass app + db
+    const AssignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
+    AssignmentRoutes(app, db);
     const usersCollection = db.collection("users");
     const teachersCollection = db.collection("teachers");
     const studentsCollection = db.collection("students");
@@ -57,9 +60,11 @@ async function run() {
     const sectionsCollection = db.collection("sections");
     const sectionStudentsCollection = db.collection("sectionStudents");
 
+    
+
     // Mount assignment routes after db is available
-    const assignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
-    app.use("/api/assignments", assignmentRoutes(db));
+    // const assignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
+    // app.use("/api/assignments", assignmentRoutes(db));
 
     // Image Upload Endpoint
     app.post("/upload", upload.single("image"), async (req, res) => {
@@ -633,6 +638,8 @@ async function run() {
           });
       }
     });
+
+    // getting assignment by course id
 
     await client.db("admin").command({ ping: 1 });
     console.log(

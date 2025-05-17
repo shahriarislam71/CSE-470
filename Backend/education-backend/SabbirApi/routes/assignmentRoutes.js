@@ -1,57 +1,69 @@
 const express = require("express");
-const { ObjectId } = require("mongodb");
 const multer = require("multer");
-const storage = require("../../utils/cloudinaryStorage");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: "CSE470",
+  api_key: "291642634322429",
+  api_secret: "a1-IwYjRmrse_zJcaLlzhEj0fwM",
+});
+
+// Setup Cloudinary Storage
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "assignments",
+    allowed_formats: ["pdf", "jpg", "jpeg", "png"],
+    resource_type: "auto",
+  },
+});
+
 const upload = multer({ storage });
 
-const router = express.Router();
-
-module.exports = (db) => {
+function AssignmentRoutes(app, db) {
   const assignmentsCollection = db.collection("assignments");
   const submissionsCollection = db.collection("assignmentSubmissions");
 
-  // Create an assignment (teacher)
-  router.post("/", async (req, res) => {
-    try {
-      const { title, description, dueDate, instructorEmail, courseId, section } = req.body;
-      if (!title || !dueDate || !instructorEmail || !courseId || !section) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+  // ✅ Create a new assignment (teacher) with file upload
+    app.post("/assignments", async (req, res) => {
+  try {
+    const { title, description, dueDate, courseId, section, teacherEmail } = req.body;
 
-      const newAssignment = {
-        title,
-        description,
-        dueDate: new Date(dueDate),
-        instructorEmail,
-        courseId: new ObjectId(courseId),
-        section,
-        createdAt: new Date(),
-      };
-
-      const result = await assignmentsCollection.insertOne(newAssignment);
-      res.status(201).json({
-        message: "Assignment created",
-        assignment: result.ops?.[0] || newAssignment,
-      });
-    } catch (error) {
-      console.error("Error creating assignment:", error);
-      res.status(500).json({ message: "Internal server error" });
+    if (!title || !courseId || !section || !teacherEmail) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
-  });
 
-  // Get assignments for a course + section
-  router.get("/", async (req, res) => {
+    const assignment = {
+      title,
+      description,
+      dueDate: dueDate ? new Date(dueDate) : null,
+      courseId,
+      section,
+      teacherEmail,
+      createdAt: new Date(),
+    };
+
+    const result = await assignmentsCollection.insertOne(assignment);
+    res.status(201).json({ message: "Assignment created", id: result.insertedId });
+  } catch (err) {
+    console.error("Error creating assignment:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+});
+
+
+
+  // 🔍 Get assignments by courseId and section
+  app.get("/assignments", async (req, res) => {
     try {
       const { courseId, section } = req.query;
-      if (!courseId || !section) {
-        return res.status(400).json({ message: "Missing courseId or section" });
-      }
+      const query = {};
+      if (courseId) query.courseId = courseId;
+      if (section) query.section = section;
 
-      const assignments = await assignmentsCollection
-        .find({ courseId: new ObjectId(courseId), section })
-        .sort({ createdAt: -1 })
-        .toArray();
-
+      const assignments = await assignmentsCollection.find(query).toArray();
       res.json(assignments);
     } catch (err) {
       console.error("Error fetching assignments:", err);
@@ -59,55 +71,68 @@ module.exports = (db) => {
     }
   });
 
-  // Submit assignment (student) with file upload to Cloudinary
-  router.post("/submit", upload.single("file"), async (req, res) => {
+  // ❌ Delete assignment by ID
+  app.delete("/assignments/:id", async (req, res) => {
     try {
-      const { assignmentId, studentEmail, courseId, section } = req.body;
+      const { id } = req.params;
+      const { ObjectId } = require("mongodb");
 
-      if (!assignmentId || !studentEmail || !courseId || !section || !req.file) {
-        return res.status(400).json({ message: "Missing required fields" });
+      const result = await assignmentsCollection.deleteOne({ _id: new ObjectId(id) });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: "Assignment not found" });
       }
 
-      const submission = {
-        assignmentId: new ObjectId(assignmentId),
-        studentEmail,
-        courseId: new ObjectId(courseId),
-        section,
-        fileUrl: req.file.path,
-        fileType: req.file.mimetype,
-        submittedAt: new Date(),
-      };
-
-      await submissionsCollection.insertOne(submission);
-      res.status(201).json({ message: "Submission successful", submission });
+      res.status(200).json({ message: "Assignment deleted successfully" });
     } catch (err) {
-      console.error("Submission error:", err);
+      console.error("Error deleting assignment:", err);
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  // Get submissions by student
-  router.get("/submissions", async (req, res) => {
+  // 📤 Submit assignment (student) with file upload
+  app.post("/assignment-submissions", upload.single("file"), async (req, res) => {
     try {
-      const { studentEmail, courseId, section } = req.query;
-      if (!studentEmail || !courseId || !section) {
+      const { assignmentId, courseId, section, studentEmail, studentName } = req.body;
+
+      if (!assignmentId || !courseId || !section || !studentEmail || !req.file) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      const submissions = await submissionsCollection
-        .find({
-          studentEmail,
-          courseId: new ObjectId(courseId),
-          section,
-        })
-        .toArray();
+      const submission = {
+        assignmentId,
+        courseId,
+        section,
+        studentEmail,
+        studentName,
+        fileUrl: req.file.path, // Cloudinary file URL
+        submittedAt: new Date(),
+      };
 
+      const result = await submissionsCollection.insertOne(submission);
+      res.status(201).json({ message: "Submission successful", id: result.insertedId });
+    } catch (err) {
+      console.error("Error submitting assignment:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // 👀 Get assignment submissions (filter by course, section, or studentEmail)
+  app.get("/assignment-submissions", async (req, res) => {
+    try {
+      const { courseId, section, studentEmail } = req.query;
+      const query = {};
+      if (courseId) query.courseId = courseId;
+      if (section) query.section = section;
+      if (studentEmail) query.studentEmail = studentEmail;
+
+      const submissions = await submissionsCollection.find(query).toArray();
       res.json(submissions);
     } catch (err) {
       console.error("Error fetching submissions:", err);
       res.status(500).json({ message: "Server error" });
     }
   });
+}
 
-  return router;
-};
+module.exports = AssignmentRoutes;

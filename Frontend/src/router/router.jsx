@@ -30,29 +30,22 @@ import Unenroll from "../component/dashboard/EnrolledCourses/UnEnroll";
 import Video from "../component/dashboard/EnrolledCourses/Video";
 import EnrolledCourseSideBar from "../layout/EnrolledCourseSideBar";
 
-import { Authcontext } from '../context/AuthProvider';
-import AdminDashboard from '../layout/AdminDashboard';
 import AddStudent from '../component/dashboard/AdminDashboard/AddStudent';
 import AddTeacher from '../component/dashboard/AdminDashboard/AddTeacher';
 import AdminDashboardHome from '../component/dashboard/AdminDashboard/AdminDashboardHome';
-import CourseManagementLayout from '../layout/CourseManagementLayout';
-import CourseOverview from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseOverview';
-import CreateSection from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CreateSection';
-import CourseSections from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseSections';
-import CourseAnnouncements from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseAnnouncements';
-import CourseStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseStudents';
-import AddStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/AddStudents';
-import CourseChatrooms from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseChatrooms';
+import AddStudentsToSection from '../component/dashboard/teacherDashboard/teacherCourseDashboard/AddStudentsToSection';
 import CourseAssignments from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseAssignments';
 import CourseMaterials from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseMaterials';
-import CourseVideos from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseVideos';
 import CourseNotes from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseNotes';
+import CourseOverview from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseOverview';
 import CoursePractice from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CoursePractice';
+import CourseVideos from '../component/dashboard/teacherDashboard/teacherCourseDashboard/CourseVideos';
 import SectionAnnouncements from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionAnnouncements';
-import SectionStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionStudents';
 import SectionChatrooms from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionChatrooms';
-import SectionAssignments from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionAssignments';
-import AddStudentsToSection from '../component/dashboard/teacherDashboard/teacherCourseDashboard/AddStudentsToSection';
+import SectionStudents from '../component/dashboard/teacherDashboard/teacherCourseDashboard/SectionStudents';
+import { Authcontext } from '../context/AuthProvider';
+import AdminDashboard from '../layout/AdminDashboard';
+import CourseManagementLayout from '../layout/CourseManagementLayout';
 
 // Generic error page for route errors
 function ErrorPage({ error }) {
@@ -183,7 +176,7 @@ const router = createBrowserRouter([
         { path: 'students', element: <SectionStudents /> },
         { path: 'add-students', element: <AddStudentsToSection /> },
         { path: 'chatrooms', element: <SectionChatrooms /> },
-        { path: 'assignments', element: <SectionAssignments /> }
+        { path: 'assignments', element: <CourseAssignments /> }
       ]
     }
   ],
