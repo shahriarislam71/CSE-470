@@ -53,6 +53,8 @@ async function run() {
     const teachersCollection = db.collection("teachers");
     const studentsCollection = db.collection("students");
     const coursesCollection = db.collection("courses"); // New collection for courses
+    const sectionsCollection = db.collection("sections");
+    const sectionStudentsCollection = db.collection("sectionStudents");
 
     // Image Upload Endpoint
     app.post("/upload", upload.single("image"), async (req, res) => {
@@ -434,38 +436,235 @@ async function run() {
       }
     });
 
+    // Create a new section
+    app.post("/sections", async (req, res) => {
+      try {
+        const { courseCode, email, sectionName } = req.body;
+        console.log(courseCode);
+
+        if (!courseCode || !email || !sectionName) {
+          return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Check if a section with this courseCode already exists
+        const existingSection = await sectionsCollection.findOne({
+          courseCode,
+        });
+
+        if (existingSection) {
+          // If exists, push the new sectionName to the sections array
+          const result = await sectionsCollection.updateOne(
+            { courseCode },
+            { $push: { sections: sectionName } }
+          );
+        } else {
+          // If doesn't exist, create a new document
+          const newSection = {
+            courseCode,
+            email,
+            sections: [sectionName],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          await sectionsCollection.insertOne(newSection);
+        }
+
+        res
+          .status(201)
+          .json({ success: true, message: "Section created successfully" });
+      } catch (err) {
+        console.error("Error creating section:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while creating section" });
+      }
+    });
+
+    // Get sections by course code
+    app.get("/sections/:courseCode", async (req, res) => {
+      try {
+        const { courseCode } = req.params;
+        const section = await sectionsCollection.findOne({ courseCode });
+
+        if (!section) {
+          return res
+            .status(404)
+            .json({ message: "No sections found for this course" });
+        }
+
+        res.json(section);
+      } catch (err) {
+        console.error("Error fetching sections:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching sections" });
+      }
+    });
+
+    // Get all sections for a user by email
+    app.get("/sections", async (req, res) => {
+      try {
+        const { email } = req.query;
+
+        if (!email) {
+          return res
+            .status(400)
+            .json({ message: "Email parameter is required" });
+        }
+
+        const sections = await sectionsCollection.find({ email }).toArray();
+        res.json(sections);
+      } catch (err) {
+        console.error("Error fetching user sections:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching user sections" });
+      }
+    });
+
+    app.post("/section-students", async (req, res) => {
+      try {
+        const { email, teacherEmail, courseCode, courseId, section, status } =
+          req.body;
+
+        // Validate required fields
+        if (!email || !teacherEmail || !courseCode || !courseId || !section) {
+          return res
+            .status(400)
+            .json({ message: "All required fields must be provided" });
+        }
+
+        // Validate email format
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          return res
+            .status(400)
+            .json({ message: "Please provide a valid email address" });
+        }
+
+        // Check if student already exists in this section
+        const existingStudent = await sectionStudentsCollection.findOne({
+          email,
+          courseCode,
+          section,
+        });
+
+        if (existingStudent) {
+          return res
+            .status(400)
+            .json({ message: "Student already exists in this section" });
+        }
+
+        // Create new section student record
+        const newSectionStudent = {
+          email,
+          teacherEmail,
+          courseCode,
+          courseId,
+          section,
+          status: status || "pending",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const result = await sectionStudentsCollection.insertOne(
+          newSectionStudent
+        );
+
+        res.status(201).json({
+          message: "Student added to section successfully",
+          student: {
+            id: result.insertedId,
+            ...newSectionStudent,
+          },
+        });
+      } catch (err) {
+        console.error("Error adding student to section:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while adding student to section" });
+      }
+    });
+
+    app.get("/section-students", async (req, res) => {
+      try {
+        const { courseCode, section, email } = req.query;
+        let query = {};
+
+        if (courseCode) query.courseCode = courseCode;
+        if (section) query.section = section;
+        if (email) query.email = email;
+
+        const students = await sectionStudentsCollection.find(query).toArray();
+        res.json(students);
+      } catch (err) {
+        console.error("Error fetching section students:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching section students" });
+      }
+    });
+
+    app.delete("/section-students/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const result = await sectionStudentsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res
+            .status(404)
+            .json({ message: "Student not found in section" });
+        }
+
+        res.json({ message: "Student removed from section successfully" });
+      } catch (err) {
+        console.error("Error removing student from section:", err);
+        res
+          .status(500)
+          .json({
+            message: "Server error while removing student from section",
+          });
+      }
+    });
 
     // getting assignment by course id
 
-app.post("/assignments", async (req, res) => {
-  try {
-    const { courseTitle, title, description, dueDate, postedBy } = req.body;
+    app.post("/assignments", async (req, res) => {
+      try {
+        const { courseTitle, title, description, dueDate, postedBy } = req.body;
 
-    if (!courseTitle || !title || !dueDate || !postedBy) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+        if (!courseTitle || !title || !dueDate || !postedBy) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
 
-    const newAssignment = {
-      courseTitle,
-      title,
-      description,
-      dueDate: new Date(dueDate),
-      postedBy,
-      createdAt: new Date()
-    };
+        const newAssignment = {
+          courseTitle,
+          title,
+          description,
+          dueDate: new Date(dueDate),
+          postedBy,
+          createdAt: new Date(),
+        };
 
-    const result = await assignmentsCollection.insertOne(newAssignment);
-    res.status(201).json({
-      message: "Assignment created successfully",
-      assignment: { id: result.insertedId, ...newAssignment }
+        const result = await assignmentsCollection.insertOne(newAssignment);
+        res.status(201).json({
+          message: "Assignment created successfully",
+          assignment: { id: result.insertedId, ...newAssignment },
+        });
+      } catch (err) {
+        console.error("Error creating assignment:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while creating assignment" });
+      }
     });
-  } catch (err) {
-    console.error("Error creating assignment:", err);
-    res.status(500).json({ message: "Server error while creating assignment" });
-  }
-});
 
-
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
     console.log("Successfully connected to MongoDB!");
   } catch (err) {
     console.error("Database connection error:", err);
@@ -481,8 +680,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-
-
-
-
