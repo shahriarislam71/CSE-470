@@ -17,6 +17,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.xq01pu7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -49,6 +50,9 @@ async function run() {
 
     // Initialize collections
     const db = client.db("education");
+    // Import your assignment routes and pass app + db
+    const AssignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
+    AssignmentRoutes(app, db);
     const usersCollection = db.collection("users");
     const teachersCollection = db.collection("teachers");
     const studentsCollection = db.collection("students");
@@ -59,6 +63,12 @@ async function run() {
     const courseVideosCollection = db.collection("courseVideos");
     const lectureNotesCollection = db.collection("lectureNotes");
     const enrolledCoursesCollection = db.collection("enrolledCourses");
+
+    
+
+    // Mount assignment routes after db is available
+    // const assignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
+    // app.use("/api/assignments", assignmentRoutes(db));
 
     // Image Upload Endpoint
     app.post("/upload", upload.single("image"), async (req, res) => {
@@ -298,7 +308,7 @@ async function run() {
       }
     });
 
-    // update the code
+    // update the name and other details of the course
     app.put("/courses/:id", upload.single("image"), async (req, res) => {
       try {
         const { id } = req.params;
@@ -1092,36 +1102,6 @@ async function run() {
     });
 
     // getting assignment by course id
-
-    app.post("/assignments", async (req, res) => {
-      try {
-        const { courseTitle, title, description, dueDate, postedBy } = req.body;
-
-        if (!courseTitle || !title || !dueDate || !postedBy) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        const newAssignment = {
-          courseTitle,
-          title,
-          description,
-          dueDate: new Date(dueDate),
-          postedBy,
-          createdAt: new Date(),
-        };
-
-        const result = await assignmentsCollection.insertOne(newAssignment);
-        res.status(201).json({
-          message: "Assignment created successfully",
-          assignment: { id: result.insertedId, ...newAssignment },
-        });
-      } catch (err) {
-        console.error("Error creating assignment:", err);
-        res
-          .status(500)
-          .json({ message: "Server error while creating assignment" });
-      }
-    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
