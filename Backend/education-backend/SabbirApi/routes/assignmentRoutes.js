@@ -1,48 +1,68 @@
 const express = require("express");
 const multer = require("multer");
-const { v2: cloudinary } = require("cloudinary");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const { ObjectId } = require("mongodb");
 
-// Cloudinary config
-cloudinary.config({
-  cloud_name: "CSE470",
-  api_key: "291642634322429",
-  api_secret: "a1-IwYjRmrse_zJcaLlzhEj0fwM",
-});
-
-// Setup Cloudinary Storage
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "assignments",
-    allowed_formats: ["pdf", "jpg", "jpeg", "png"],
-    resource_type: "auto",
-  },
-});
-
+// Multer memory storage (like your teammate)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-function AssignmentRoutes(app, db) {
+function AssignmentRoutes(app, db, gridFSBucket) {
   const assignmentsCollection = db.collection("assignments");
   const submissionsCollection = db.collection("assignmentSubmissions");
 
-  // ✅ Create a new assignment (teacher) with file upload
-    app.post("/assignments", async (req, res) => {
+  // ✅ Create a new assignment with file (teacher)
+app.post("/assignments", upload.single("file"), async (req, res) => {
   try {
+    console.log("Incoming assignment upload request...");
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
+
     const { title, description, dueDate, courseId, section, teacherEmail } = req.body;
+    const file = req.file;
 
     if (!title || !courseId || !section || !teacherEmail) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    let fileMeta = null;
+
+    if (file) {
+      const filename = `${Date.now()}_${file.originalname}`;
+      const uploadStream = gridFSBucket.openUploadStream(filename, {
+        contentType: file.mimetype,
+      });
+
+      uploadStream.end(file.buffer);
+
+      const fileInfo = await new Promise((resolve, reject) => {
+        uploadStream.on("finish", () =>
+          resolve({
+            fileId: uploadStream.id,
+            fileName: filename,
+            contentType: file.mimetype,
+            url: `http://localhost:5000/image/${uploadStream.id}`,
+          })
+        );
+        uploadStream.on("error", reject);
+      });
+
+      fileMeta = fileInfo;
     }
 
     const assignment = {
       title,
       description,
       dueDate: dueDate ? new Date(dueDate) : null,
-      courseId,
+      courseId: new ObjectId(courseId),
       section,
       teacherEmail,
       createdAt: new Date(),
+      ...(fileMeta && {
+        fileId: fileMeta.fileId,
+        fileName: fileMeta.fileName,
+        contentType: fileMeta.contentType,
+        fileUrl: fileMeta.url,
+      }),
     };
 
     const result = await assignmentsCollection.insertOne(assignment);
@@ -54,13 +74,12 @@ function AssignmentRoutes(app, db) {
 });
 
 
-
   // 🔍 Get assignments by courseId and section
   app.get("/assignments", async (req, res) => {
     try {
       const { courseId, section } = req.query;
       const query = {};
-      if (courseId) query.courseId = courseId;
+      if (courseId) query.courseId = new ObjectId(courseId);
       if (section) query.section = section;
 
       const assignments = await assignmentsCollection.find(query).toArray();
@@ -75,8 +94,6 @@ function AssignmentRoutes(app, db) {
   app.delete("/assignments/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { ObjectId } = require("mongodb");
-
       const result = await assignmentsCollection.deleteOne({ _id: new ObjectId(id) });
 
       if (result.deletedCount === 0) {
@@ -90,22 +107,45 @@ function AssignmentRoutes(app, db) {
     }
   });
 
-  // 📤 Submit assignment (student) with file upload
+  // 📤 Submit assignment with file upload (student)
   app.post("/assignment-submissions", upload.single("file"), async (req, res) => {
     try {
       const { assignmentId, courseId, section, studentEmail, studentName } = req.body;
+      const file = req.file;
 
-      if (!assignmentId || !courseId || !section || !studentEmail || !req.file) {
+      if (!assignmentId || !courseId || !section || !studentEmail || !file) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      // Upload file to GridFS
+      const filename = `${Date.now()}_${file.originalname}`;
+      const uploadStream = gridFSBucket.openUploadStream(filename, {
+        contentType: file.mimetype,
+      });
+
+      uploadStream.end(file.buffer);
+
+      const fileInfo = await new Promise((resolve, reject) => {
+        uploadStream.on("finish", () =>
+          resolve({
+            filename: filename,
+            fileId: uploadStream.id,
+            contentType: file.mimetype,
+            url: `http://localhost:5000/image/${uploadStream.id}`,
+          })
+        );
+        uploadStream.on("error", reject);
+      });
+
       const submission = {
-        assignmentId,
-        courseId,
+        assignmentId: new ObjectId(assignmentId),
+        courseId: new ObjectId(courseId),
         section,
         studentEmail,
         studentName,
-        fileUrl: req.file.path, // Cloudinary file URL
+        fileUrl: fileInfo.url,
+        fileId: fileInfo.fileId,
+        contentType: fileInfo.contentType,
         submittedAt: new Date(),
       };
 
@@ -122,7 +162,7 @@ function AssignmentRoutes(app, db) {
     try {
       const { courseId, section, studentEmail } = req.query;
       const query = {};
-      if (courseId) query.courseId = courseId;
+      if (courseId) query.courseId = new ObjectId(courseId);
       if (section) query.section = section;
       if (studentEmail) query.studentEmail = studentEmail;
 

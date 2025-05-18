@@ -50,9 +50,12 @@ async function run() {
 
     // Initialize collections
     const db = client.db("education");
+    
     // Import your assignment routes and pass app + db
+    // ✅ Pass gridFSBucket into your route
     const AssignmentRoutes = require("./SabbirApi/routes/assignmentRoutes");
-    AssignmentRoutes(app, db);
+    AssignmentRoutes(app, db, gridFSBucket);
+
     const usersCollection = db.collection("users");
     const teachersCollection = db.collection("teachers");
     const studentsCollection = db.collection("students");
