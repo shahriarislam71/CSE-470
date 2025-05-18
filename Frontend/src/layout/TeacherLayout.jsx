@@ -37,9 +37,9 @@ const TeacherDashboard = () => {
                   transition={{ delay: 0.2 }}
                   className="text-3xl font-extrabold bg-gradient-to-r from-purple-500 to-purple-700 bg-clip-text text-transparent"
                 >
-                  Teach<span className="text-black">Pro</span>
+                  Eduaction And Communicaton<span className="text-black"></span>
                 </motion.h1>
-                <p className="text-sm text-purple-400 mt-1">Elevate Your Teaching Experience</p>
+                <p className="text-sm text-black mt-3">Elevate Your Teaching Experience</p>
               </div>
 
               {/* Navigation */}

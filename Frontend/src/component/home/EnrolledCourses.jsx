@@ -1,145 +1,95 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { Authcontext } from '../../context/AuthProvider';
 
 const EnrolledCourses = () => {
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  // console.log(courses)
+  const [error, setError] = useState(null);
+  const {users} = useContext(Authcontext)
   useEffect(() => {
-    setCourses([
-      {
-        "coursePicture": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwgWVgzEpNo6FVTWvlowZngttxRheolOynDQ&s",
-        "courseName": "Introduction to Programming",
-        "courseTitle": "CSE110",
-        "endTime": "2025-06-15T23:59:59Z",
-        "weeks": [
-          {
-            "week": 1,
-            "materials": [
-              { "type": "video", "title": "Introduction to Programming", "url": "https://example.com/intro.mp4" },
-              { "type": "lecture_notes", "title": "Programming Basics", "url": "https://example.com/notes.pdf" },
-              { "type": "assignment", "title": "Basic Syntax", "questions": 10, "dueDate": "2024-12-03T23:59:00Z", "url": "https://example.com/assignment1.pdf" },
-              { "type": "practice_problem", "title": "Loops & Conditions", "problems": 5, "url": "https://example.com/practice1.pdf" }
-            ]
-          },
-          {
-            "week": 2,
-            "materials": [
-              { "type": "video", "title": "Functions & Arrays", "url": "https://example.com/functions.mp4" },
-              { "type": "lecture_notes", "title": "Understanding Functions", "url": "https://example.com/functions_notes.pdf" },
-              { "type": "assignment", "title": "Array Operations", "questions": 8, "dueDate": "2024-12-10T23:59:00Z", "url": "https://example.com/assignment2.pdf" },
-              { "type": "practice_problem", "title": "Function Challenges", "problems": 7, "url": "https://example.com/practice2.pdf" }
-            ]
-          }
-        ],
-        "announcements": [
-          { "name": "John Doe", "photo": "https://example.com/john_doe.jpg", "date": "2025-02-10", "message": "Welcome to Introduction to Programming!" }
-        ],
-        "chatrooms": "https://example.com/chatroom_CSE110"
-      },
-      {
-        "coursePicture": "https://www.shutterstock.com/image-photo/ai-artificial-intelligence-search-engine-600nw-2304697097.jpg",
-        "courseName": "Data Science Essentials",
-        "courseTitle": "CSE430",
-        "endTime": "2025-07-10T23:59:59Z",
-        "weeks": [
-          {
-            "week": 1,
-            "materials": [
-              { "type": "video", "title": "Introduction to Data Science", "url": "https://example.com/data_science_intro.mp4" },
-              { "type": "lecture_notes", "title": "Data Science Overview", "url": "https://example.com/data_notes.pdf" },
-              { "type": "assignment", "title": "Exploratory Data Analysis", "questions": 12, "dueDate": "2024-12-05T23:59:00Z", "url": "https://example.com/assignment3.pdf" },
-              { "type": "practice_problem", "title": "Data Cleaning Challenges", "problems": 6, "url": "https://example.com/practice3.pdf" }
-            ]
-          }
-        ],
-        "announcements": [
-          { "name": "Jane Smith", "photo": "https://example.com/jane_smith.jpg", "date": "2025-02-11", "message": "New assignments have been uploaded!" }
-        ],
-        "chatrooms": "https://example.com/chatroom_CSE430"
-      },
-      {
-        "coursePicture": "https://t3.ftcdn.net/jpg/02/14/53/92/360_F_214539232_YnUrtuwUEt84gHuU0qG8l7OwZvH4rnPG.jpg",
-        "courseName": "Web Development Bootcamp",
-        "courseTitle": "CSE370",
-        "endTime": "2025-08-05T23:59:59Z",
-        "weeks": [
-          {
-            "week": 1,
-            "materials": [
-              { "type": "video", "title": "HTML & CSS Basics", "url": "https://example.com/html_css.mp4" },
-              { "type": "lecture_notes", "title": "Introduction to Web Development", "url": "https://example.com/web_notes.pdf" },
-              { "type": "assignment", "title": "Build a Simple Webpage", "questions": 5, "dueDate": "2024-12-10T23:59:00Z", "url": "https://example.com/assignment5.pdf" },
-              { "type": "practice_problem", "title": "CSS Layout Challenges", "problems": 4, "url": "https://example.com/practice5.pdf" }
-            ]
-          }
-        ],
-        "announcements": [
-          { "name": "Alice Brown", "photo": "https://example.com/alice_brown.jpg", "date": "2025-02-12", "message": "Course materials have been updated!" }
-        ],
-        "chatrooms": "https://example.com/chatroom_CSE370"
-      },
-      {
-        "coursePicture": "https://media.istockphoto.com/id/966248982/photo/robot-with-education-hud.jpg?s=612x612&w=0&k=20&c=9eoZYRXNZsuU3edU87PksxN4Us-c9rB6IR7U_IGZ-U8=",
-        "courseName": "Machine Learning with Python",
-        "courseTitle": "CSE422",
-        "endTime": "2025-09-20T23:59:59Z",
-        "weeks": [
-          {
-            "week": 1,
-            "materials": [
-              { "type": "video", "title": "Introduction to ML", "url": "https://example.com/ml_intro.mp4" },
-              { "type": "lecture_notes", "title": "What is Machine Learning?", "url": "https://example.com/ml_notes.pdf" },
-              { "type": "assignment", "title": "Supervised Learning Basics", "questions": 10, "dueDate": "2024-12-12T23:59:00Z", "url": "https://example.com/assignment6.pdf" },
-              { "type": "practice_problem", "title": "Regression Challenges", "problems": 6, "url": "https://example.com/practice6.pdf" }
-            ]
-          }
-        ],
-        "announcements": [
-          { "name": "David Clark", "photo": "https://example.com/david_clark.jpg", "date": "2025-02-13", "message": "Discussion session will be held tomorrow." }
-        ],
-        "chatrooms": "https://example.com/chatroom_CSE422"
-      },
-      {
-        "coursePicture": "https://www.theforage.com/blog/wp-content/uploads/2022/12/what-is-cybersecurity.jpg",
-        "courseName": "Cybersecurity Fundamentals",
-        "courseTitle": "CSE410",
-        "endTime": "2025-10-12T23:59:59Z",
-        "weeks": [
-          {
-            "week": 1,
-            "materials": [
-              { "type": "video", "title": "Cyber Threats Overview", "url": "https://example.com/cyber_threats.mp4" },
-              { "type": "lecture_notes", "title": "Introduction to Cybersecurity", "url": "https://example.com/cybersecurity_notes.pdf" },
-              { "type": "assignment", "title": "Security Protocols", "questions": 15, "dueDate": "2024-12-15T23:59:00Z", "url": "https://example.com/assignment7.pdf" },
-              { "type": "practice_problem", "title": "Network Security Problems", "problems": 8, "url": "https://example.com/practice7.pdf" }
-            ]
-          }
-        ],
-        "announcements": [
-          { "name": "Emma Johnson", "photo": "https://example.com/emma_johnson.jpg", "date": "2025-02-14", "message": "Reminder: Project deadline approaching!" }
-        ],
-        "chatrooms": "https://example.com/chatroom_CSE410"
+    const fetchEnrolledCourses = async () => {
+      try {
+        const studentEmail = localStorage.getItem('email') || 'shahriar.islam.rafi@g.bracu.ac.bd';
+        
+        // Fetch enrolled courses
+        const enrolledResponse = await axios.get(`http://localhost:5000/enrolled-courses`, {
+          params: { email: studentEmail }
+        });
+        
+        if (enrolledResponse.data?.length > 0) {
+          // Fetch section information
+          const sectionsResponse = await axios.get(`http://localhost:5000/section-students`, {
+            params: { email: studentEmail }
+          });
+
+          const enrichedCourses = await Promise.all(
+            enrolledResponse.data.map(async (enrollment) => {
+              try {
+                const courseResponse = await axios.get(`http://localhost:5000/courses/${enrollment.courseId}`);
+                // Find the section for this course
+                const sectionInfo = sectionsResponse.data.find(
+                  s => s.courseCode === enrollment.courseCode
+                );
+                
+                return {
+                  ...enrollment,
+                  section: sectionInfo?.section || 'Default Section',
+                  coursePicture: courseResponse.data?.imageUrl || 'https://via.placeholder.com/150',
+                  endTime: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
+                  weeks: [],
+                  announcements: [],
+                  chatrooms: `http://localhost:5000/chatroom_${enrollment.courseCode}`
+                };
+              } catch (err) {
+                console.error(`Error fetching details for course ${enrollment.courseId}:`, err);
+                return {
+                  ...enrollment,
+                  section: 'Default Section',
+                  coursePicture: 'https://via.placeholder.com/150',
+                  endTime: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
+                  weeks: [],
+                  announcements: [],
+                  chatrooms: `http://localhost:5000/chatroom_${enrollment.courseCode}`
+                };
+              }
+            })
+          );
+          setCourses(enrichedCourses);
+        } else {
+          setCourses([]);
+        }
+      } catch (err) {
+        console.error('Error fetching enrolled courses:', err);
+        setError('Failed to load enrolled courses. Please try again later.');
+      } finally {
+        setLoading(false);
       }
-    ]
-    )
+    };
+
+    fetchEnrolledCourses();
   }, []);
 
   return (
     <div className='mt-8 ms-5'>
       {loading ? (
         <h1 className='text-color text-2xl font-bold'>Loading...</h1>
+      ) : error ? (
+        <h1 className='text-color text-2xl font-bold'>{error}</h1>
       ) : courses.length > 0 ? (
         <>
           <div className='flex justify-between items-center'>
             <h1 className='text-color text-2xl font-bold'>Enrolled Courses</h1>
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className='px-4 py-2 bg-[#8B5CF6] text-white font-medium rounded-md hover:bg-[#A855F7] transition-all duration-300'>
-              {showAll ? "Show Less" : "See All"}
-            </button>
+            {courses.length > 3 && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className='px-4 py-2 bg-[#8B5CF6] text-white font-medium rounded-md hover:bg-[#A855F7] transition-all duration-300'>
+                {showAll ? "Show Less" : "See All"}
+              </button>
+            )}
           </div>
 
           <div className='mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
@@ -153,24 +103,44 @@ const EnrolledCourses = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <img src={course.coursePicture} alt={course.courseName} className='w-full h-40 object-cover rounded-md' />
+                <img 
+                  src={course.coursePicture} 
+                  alt={course.courseName} 
+                  className='w-full h-40 object-cover rounded-md' 
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = 'https://via.placeholder.com/150';
+                  }}
+                />
                 <h2 className='text-xl font-semibold mt-2 text-white'>{course.courseName}</h2>
-                <p className='text-white'>{course.courseTitle}</p>
-                <p className='text-sm text-white'>End Time: {new Date(course.endTime).toLocaleString()}</p>
+                <p className='text-white'>{course.courseCode}</p>
+                <p className='text-sm text-white'>Faculty: {course.facultyInitial}</p>
+                <p className='text-sm text-white'>Section: {course.section}</p>
+                <p className='text-sm text-white'>
+                  Enrolled: {new Date(course.enrolledAt).toLocaleDateString()}
+                </p>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className='mt-3 px-4 py-2 bg-[#8B5CF6] text-white rounded-md w-full font-medium hover:bg-[#A855F7] transition-all duration-300'
                 >
-                  <Link to={`/enrolledCourses/${course.courseTitle}`}>View Details</Link>
+                  <Link 
+                    to={`/enrolledCourses/${course.courseCode}`}
+                    state={{ 
+                      sectionName: course.section,
+                      courseData: course // Pass entire course data if needed
+                    }}
+                  >
+                    View Details
+                  </Link>
                 </motion.button>
               </motion.div>
             ))}
           </div>
         </>
       ) : (
-        <h1 className='text-color text-2xl font-bold'>There is no Enrolled Courses</h1>
+        <h1 className='text-color text-2xl font-bold'>You are not enrolled in any courses yet</h1>
       )}
     </div>
   );

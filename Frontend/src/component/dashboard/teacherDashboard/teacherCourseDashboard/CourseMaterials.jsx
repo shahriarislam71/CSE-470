@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { FiVideo, FiFile, FiFileText } from 'react-icons/fi';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 
 const CourseMaterials = () => {
   return (
@@ -15,8 +15,12 @@ const CourseMaterials = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <NavLink
-          to="materials/videos"
-          className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center"
+          to="videos"
+          className={({ isActive }) => 
+            `bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center ${
+              isActive ? 'ring-2 ring-purple-500' : ''
+            }`
+          }
         >
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
             <FiVideo className="text-purple-600 text-2xl" />
@@ -26,8 +30,12 @@ const CourseMaterials = () => {
         </NavLink>
         
         <NavLink
-          to="materials/notes"
-          className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center"
+          to="notes"
+          className={({ isActive }) => 
+            `bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center ${
+              isActive ? 'ring-2 ring-blue-500' : ''
+            }`
+          }
         >
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <FiFile className="text-blue-600 text-2xl" />
@@ -37,8 +45,12 @@ const CourseMaterials = () => {
         </NavLink>
         
         <NavLink
-          to="materials/practice"
-          className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center"
+          to="practice"
+          className={({ isActive }) => 
+            `bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center ${
+              isActive ? 'ring-2 ring-green-500' : ''
+            }`
+          }
         >
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <FiFileText className="text-green-600 text-2xl" />
@@ -46,6 +58,11 @@ const CourseMaterials = () => {
           <h3 className="font-medium text-gray-800">Practice Sheets</h3>
           <p className="text-sm text-gray-500 mt-1">Upload and manage practice materials</p>
         </NavLink>
+      </div>
+
+      {/* Add this Outlet to render child routes */}
+      <div className="mt-8">
+        <Outlet />
       </div>
     </motion.div>
   );

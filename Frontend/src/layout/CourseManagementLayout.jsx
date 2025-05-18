@@ -1,59 +1,93 @@
-import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiHome, 
-  FiBook, 
-  FiUsers, 
-  FiMessageSquare, 
-  FiFileText, 
-  FiVideo, 
-  FiFile, 
+import { useState, useEffect, useContext } from "react";
+import { Outlet, NavLink, useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiHome,
+  FiBook,
+  FiUsers,
+  FiMessageSquare,
+  FiFileText,
+  FiVideo,
+  FiFile,
   FiPlusCircle,
   FiChevronDown,
   FiChevronRight,
-  FiUserPlus
-} from 'react-icons/fi';
-import Swal from 'sweetalert2';
+  FiUserPlus,
+  FiArrowLeft,
+} from "react-icons/fi";
+import Swal from "sweetalert2";
+import { Authcontext } from "../context/AuthProvider";
 
 const CourseManagementLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sections, setSections] = useState([]);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
-  const [newSectionName, setNewSectionName] = useState('');
+  const [newSectionName, setNewSectionName] = useState("");
   const { courseId } = useParams();
   const [courseDetails, setCourseDetails] = useState(null);
+  const { users } = useContext(Authcontext);
+  const navigate = useNavigate();
+  console.log("course details", courseDetails);
 
   // Fetch course details and sections
   useEffect(() => {
     const fetchCourseAndSections = async () => {
       try {
         // Fetch course details
-        const courseRes = await fetch(`http://localhost:5000/courses/${courseId}`);
+        const courseRes = await fetch(
+          `http://localhost:5000/courses/${courseId}`
+        );
         const courseData = await courseRes.json();
         setCourseDetails(courseData);
 
-        // Fetch sections for this course
-        const sectionsRes = await fetch(`http://localhost:5000/sections/${courseData.courseCode}`);
+        // Fetch sections for this course and teacher
+        const sectionsRes = await fetch(
+          `http://localhost:5000/sections?courseCode=${courseData.courseCode}&email=${courseData.email}`
+        );
         const sectionsData = await sectionsRes.json();
-        
+
         if (sectionsData.sections) {
-          const formattedSections = sectionsData.sections.map((sectionName, index) => ({
-            id: `${courseData.courseCode}-${index}`,
-            name: sectionName,
-            isExpanded: false,
-            items: [
-              { path: `/teacher/courses/${courseId}/sections/${sectionName}/announcements`, name: 'Announcements', icon: <FiMessageSquare /> },
-              { path: `/teacher/courses/${courseId}/sections/${sectionName}/students`, name: 'Students', icon: <FiUsers /> },
-              { path: `/teacher/courses/${courseId}/sections/${sectionName}/add-students`, name: 'Add Students', icon: <FiUserPlus /> },
-              { path: `/teacher/courses/${courseId}/sections/${sectionName}/chatrooms`, name: 'Chatrooms', icon: <FiMessageSquare /> },
-              { path: `/teacher/courses/${courseId}/sections/${sectionName}/assignments`, name: 'Assignments', icon: <FiFileText /> }
-            ]
-          }));
+          const formattedSections = sectionsData.sections.map(
+            (sectionName, index) => ({
+              id: `${courseData.courseCode}-${index}`,
+              name: sectionName,
+              isExpanded: false,
+              items: [
+                {
+                  path: `/teacher/courses/${courseId}/sections/${sectionName}/announcements`,
+                  name: "Announcements",
+                  icon: <FiMessageSquare />,
+                },
+                {
+                  path: `/teacher/courses/${courseId}/sections/${sectionName}/students`,
+                  name: "Students",
+                  icon: <FiUsers />,
+                },
+                {
+                  path: `/teacher/courses/${courseId}/sections/${sectionName}/add-students`,
+                  name: "Add Students",
+                  icon: <FiUserPlus />,
+                },
+                {
+                  path: `/teacher/courses/${courseId}/sections/${sectionName}/chatrooms`,
+                  name: "Chatrooms",
+                  icon: <FiMessageSquare />,
+                },
+                {
+                  path: `/teacher/courses/${courseId}/sections/${sectionName}/assignments`,
+                  name: "Assignments",
+                  icon: <FiFileText />,
+                },
+              ],
+            })
+          );
           setSections(formattedSections);
+        } else {
+          setSections([]); // Set empty array if no sections found
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
+        setSections([]); // Set empty array on error
       }
     };
 
@@ -65,69 +99,83 @@ const CourseManagementLayout = () => {
   };
 
   const toggleSection = (sectionId) => {
-    setSections(sections.map(section => 
-      section.id === sectionId 
-        ? { ...section, isExpanded: !section.isExpanded } 
-        : section
-    ));
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, isExpanded: !section.isExpanded }
+          : section
+      )
+    );
   };
 
   const handleAddSection = async () => {
     if (!newSectionName.trim()) return;
-    
+
     try {
-      const response = await fetch('http://localhost:5000/sections', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/sections", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           courseCode: courseDetails.courseCode,
-          email: courseDetails.email,
-          sectionName: newSectionName
-        })
+          email: courseDetails.email, // Make sure this is being sent
+          sectionName: newSectionName,
+        }),
       });
 
       if (response.ok) {
         Swal.fire({
-          title: 'Success!',
-          text: 'Section created successfully',
-          icon: 'success',
-          confirmButtonText: 'OK'
+          title: "Success!",
+          text: "Section created successfully",
+          icon: "success",
+          confirmButtonText: "OK",
         });
-        setNewSectionName('');
+        setNewSectionName("");
         setShowAddSectionModal(false);
       } else {
-        throw new Error('Failed to create section');
+        throw new Error("Failed to create section");
       }
     } catch (error) {
-      console.error('Error creating section:', error);
+      console.error("Error creating section:", error);
       Swal.fire({
-        title: 'Error!',
-        text: 'Failed to create section',
-        icon: 'error',
-        confirmButtonText: 'OK'
+        title: "Error!",
+        text: "Failed to create section",
+        icon: "error",
+        confirmButtonText: "OK",
       });
     }
   };
 
   const navItems = [
-    { 
-      path: `/teacher/courses/${courseId}/overview`, 
-      name: 'Overview', 
+    {
+      path: `/teacher/courses/${courseId}/overview`,
+      name: "Overview",
       icon: <FiHome />,
-      exact: true
+      exact: true,
     },
-    { 
-      path: `/teacher/courses/${courseId}/materials`, 
-      name: 'Course Materials', 
+    {
+      path: `/teacher/courses/${courseId}/materials`,
+      name: "Course Materials",
       icon: <FiBook />,
       subItems: [
-        { path: `/teacher/courses/${courseId}/materials/videos`, name: 'Videos', icon: <FiVideo /> },
-        { path: `/teacher/courses/${courseId}/materials/notes`, name: 'Lecture Notes', icon: <FiFile /> },
-        { path: `/teacher/courses/${courseId}/materials/practice`, name: 'Practice Sheets', icon: <FiFileText /> }
-      ]
-    }
+        {
+          path: `/teacher/courses/${courseId}/materials/videos`,
+          name: "Videos",
+          icon: <FiVideo />,
+        },
+        {
+          path: `/teacher/courses/${courseId}/materials/notes`,
+          name: "Lecture Notes",
+          icon: <FiFile />,
+        },
+        {
+          path: `/teacher/courses/${courseId}/materials/practice`,
+          name: "Practice Sheets",
+          icon: <FiFileText />,
+        },
+      ],
+    },
   ];
 
   return (
@@ -141,16 +189,20 @@ const CourseManagementLayout = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               className="bg-white rounded-xl shadow-xl w-full max-w-md"
             >
               <div className="p-6 space-y-4">
-                <h3 className="text-xl font-bold text-gray-900">Create New Section</h3>
-                
+                <h3 className="text-xl font-bold text-gray-900">
+                  Create New Section
+                </h3>
+
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Section Name</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Section Name
+                  </label>
                   <input
                     type="text"
                     value={newSectionName}
@@ -188,13 +240,13 @@ const CourseManagementLayout = () => {
             initial={{ x: -300 }}
             animate={{ x: 0 }}
             exit={{ x: -300 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="w-72 bg-white shadow-2xl z-10 border-r border-indigo-100 flex flex-col"
           >
             <div className="p-6 h-full flex flex-col overflow-hidden">
               {/* Logo/Header */}
               <div className="mb-8">
-                <motion.h1 
+                <motion.h1
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
@@ -202,7 +254,9 @@ const CourseManagementLayout = () => {
                 >
                   Course Dashboard
                 </motion.h1>
-                <p className="text-sm text-purple-400 mt-1">Manage your course content</p>
+                <p className="text-sm text-purple-400 mt-1">
+                  Manage your course content
+                </p>
               </div>
 
               {/* Navigation */}
@@ -217,8 +271,8 @@ const CourseManagementLayout = () => {
                           className={({ isActive }) =>
                             `flex items-center p-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                               isActive
-                                ? 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border-l-4 border-purple-600 font-semibold'
-                                : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
+                                ? "bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border-l-4 border-purple-600 font-semibold"
+                                : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
                             }`
                           }
                         >
@@ -228,7 +282,9 @@ const CourseManagementLayout = () => {
                       ) : (
                         <>
                           <button
-                            onClick={() => toggleSection(item.name.toLowerCase())}
+                            onClick={() =>
+                              toggleSection(item.name.toLowerCase())
+                            }
                             className="flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all"
                           >
                             <div className="flex items-center">
@@ -237,11 +293,11 @@ const CourseManagementLayout = () => {
                             </div>
                             <FiChevronDown className="text-gray-500" />
                           </button>
-                          
+
                           <AnimatePresence>
                             <motion.div
                               initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
+                              animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               className="ml-10 pl-2 border-l-2 border-purple-100 overflow-hidden"
                             >
@@ -252,8 +308,8 @@ const CourseManagementLayout = () => {
                                   className={({ isActive }) =>
                                     `flex items-center py-2 px-3 text-sm rounded-md transition-all ${
                                       isActive
-                                        ? 'bg-purple-50 text-purple-600 font-medium'
-                                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                                        ? "bg-purple-50 text-purple-600 font-medium"
+                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`
                                   }
                                 >
@@ -271,8 +327,10 @@ const CourseManagementLayout = () => {
                   {/* Sections */}
                   <li className="mt-6">
                     <div className="flex items-center justify-between px-3 py-2">
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Sections</h3>
-                      <button 
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        Sections
+                      </h3>
+                      <button
                         onClick={() => setShowAddSectionModal(true)}
                         className="p-1 text-purple-600 hover:text-purple-800 transition-colors"
                         title="Add new section"
@@ -299,12 +357,12 @@ const CourseManagementLayout = () => {
                             <FiChevronRight className="text-gray-500" />
                           )}
                         </button>
-                        
+
                         <AnimatePresence>
                           {section.isExpanded && (
                             <motion.div
                               initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
+                              animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               className="ml-10 pl-2 border-l-2 border-purple-100 overflow-hidden"
                             >
@@ -315,8 +373,8 @@ const CourseManagementLayout = () => {
                                   className={({ isActive }) =>
                                     `flex items-center py-2 px-3 text-sm rounded-md transition-all ${
                                       isActive
-                                        ? 'bg-purple-50 text-purple-600 font-medium'
-                                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                                        ? "bg-purple-50 text-purple-600 font-medium"
+                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`
                                   }
                                 >
@@ -338,7 +396,7 @@ const CourseManagementLayout = () => {
               </nav>
 
               {/* Footer */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
@@ -350,7 +408,9 @@ const CourseManagementLayout = () => {
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">Quick Actions</p>
-                    <p className="text-xs text-purple-400">Create new content</p>
+                    <p className="text-xs text-purple-400">
+                      Create new content
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -364,13 +424,22 @@ const CourseManagementLayout = () => {
         {/* Top Bar */}
         <header className="bg-white shadow-sm z-0">
           <div className="flex items-center justify-between p-4">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-purple-100 text-purple-600 transition-all duration-300 hover:scale-105"
-            >
-              {isSidebarOpen ? '◀' : '▶'}
-            </button>
-            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 rounded-lg hover:bg-purple-100 text-purple-600 transition-all duration-300 hover:scale-105"
+                title="Go back"
+              >
+                <FiArrowLeft className="text-xl" />
+              </button>
+              <button
+                onClick={toggleSidebar}
+                className="p-2 rounded-lg hover:bg-purple-100 text-purple-600 transition-all duration-300 hover:scale-105"
+              >
+                {isSidebarOpen ? "◀" : "▶"}
+              </button>
+            </div>
+
             <div className="flex items-center space-x-4">
               <div className="relative group">
                 <button className="p-2 rounded-lg hover:bg-purple-100 text-purple-600 transition-colors">
@@ -378,7 +447,7 @@ const CourseManagementLayout = () => {
                 </button>
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
               </div>
-              
+
               <div className="flex items-center space-x-2 group cursor-pointer">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md flex items-center justify-center text-white text-sm font-bold">
                   T

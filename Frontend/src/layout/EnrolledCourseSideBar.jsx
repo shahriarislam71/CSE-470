@@ -3,16 +3,30 @@ import { BsFileEarmarkText } from 'react-icons/bs';
 import { FaArchive, FaArrowLeft, FaBook, FaRegFileAlt, FaRegFileVideo, FaUserGraduate } from 'react-icons/fa';
 import { IoChatbubblesOutline } from 'react-icons/io5';
 import { MdAnnouncement, MdOutlineAssignment, MdOutlineUnsubscribe } from 'react-icons/md';
-import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom';
-
-
+import { Link, NavLink, Outlet, useLocation, useParams, useNavigate } from 'react-router-dom';
+import Chatroom from '../component/dashboard/EnrolledCourses/ChatRoom'; // Import the Chatroom component
 
 const EnrolledCourseSideBar = () => {
     const { courseTitle } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const [course, setCourse] = useState(null);
+    const [sectionName, setSectionName] = useState('');
+    const [showChat, setShowChat] = useState(false);
+    const [userType, setUserType] = useState('student'); // or 'teacher'
+    const [userEmail, setUserEmail] = useState('');
 
     useEffect(() => {
+        // Get section name from location state
+        if (location.state?.sectionName) {
+            setSectionName(location.state.sectionName);
+        }
+
+        // Get user data (you might get this from context or auth)
+        setUserEmail(localStorage.getItem('userEmail') || 'student@example.com');
+        setUserType(localStorage.getItem('userType') || 'student');
+
+        // Fetch course data
         fetch('../../public/enrolledcourse.json')
             .then((response) => response.json())
             .then((data) => {
@@ -20,72 +34,268 @@ const EnrolledCourseSideBar = () => {
                 setCourse(selectedCourse);
             })
             .catch(error => console.error("Error fetching course data:", error));
-    }, [courseTitle]);
 
-    // Function to check if any section inside a title is active
-    const isActiveSection = (paths) => paths.some(path => location.pathname.includes(path));
+        // Check if we're on the chatroom route
+        setShowChat(location.pathname.includes('chatroom'));
+    }, [courseTitle, location]);
+
+    // Function to create navigation links with section data
+    const createNavLink = (to, icon, text) => (
+        <li>
+            <NavLink 
+                to={to}
+                state={{ sectionName }}
+                className={({ isActive }) => 
+                    isActive 
+                    ? "font-semibold text-xl text-white flex items-center gap-2" 
+                    : "flex items-center gap-2 text-lg"
+                }
+                onClick={() => setShowChat(to.includes('chatroom'))}
+            >
+                {icon} {text}
+            </NavLink>
+        </li>
+    );
 
     return (
-        <div>
-            <div className="drawer lg:drawer-open">
-                <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-                <div className="drawer-content flex flex-col items-center justify-center">
-                    <Outlet context={{ course }} />
-                    <label htmlFor="my-drawer-2" className="btn btn-primary drawer-button lg:hidden">
-                        Open drawer
-                    </label>
-                </div>
+        <div className="flex h-screen">
+            {/* Sidebar */}
+            <div className="w-80 bg-[#012d5b] text-white flex-shrink-0 hidden lg:block">
+                <div className="p-4 h-full flex flex-col">
+                    <Link 
+                        title='Back to Dashboard' 
+                        to={'/home'}
+                        state={{ sectionName }}
+                        className="mb-6"
+                    >
+                        <FaArrowLeft className='w-10 h-10 p-2 border-2 rounded-full hover:bg-blue-700 transition'></FaArrowLeft>
+                    </Link>
+                    
+                    {/* Course Info */}
+                    <div className="mb-6 p-3 bg-blue-700 rounded-lg">
+                        <h3 className="font-bold text-lg">{courseTitle}</h3>
+                        {sectionName && <p className="text-sm opacity-80">Section: {sectionName}</p>}
+                    </div>
 
-                <div className="drawer-side">
-                    <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
-                    <ul className="background rounded-lg menu sidebar text-base-content min-h-full w-80 p-4">
-                        <Link title='Back to Student Dashboard' to={'/home'}><FaArrowLeft className='w-10 h-10 p-2 border-2 rounded-full mb-4'></FaArrowLeft ></Link>
+                    {/* Navigation Sections */}
+                    <div className="flex-1 overflow-y-auto">
                         {/* Course Materials */}
-                        <div>
-                            <p className={isActiveSection([
-                                "course-outline", "assignments", "videos", "practiceproblem", "studentresources", "lecturenotes", "other-resources"
-                            ]) ? "font-bold bg-[#012d5b] text-white px-4 py-2 mt-8 rounded-lg" : "text-xl mt-2"}>
-                                Course Materials
-                            </p>
-                            <div>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/course-outline`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaRegFileAlt /> Course Outline</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/assignments`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><MdOutlineAssignment /> Assignments</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/videos`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaRegFileVideo /> Videos</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/practiceproblem`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><BsFileEarmarkText /> Practice Sheets</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/studentresources`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaUserGraduate /> Students Uploaded Resources</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/lecturenotes`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaBook /> Lecture Notes</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/other-resources`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaBook /> Other Resources</NavLink></li>
-                            </div>
+                        <div className="mb-6">
+                            <h4 className="font-bold text-lg mb-2 px-2">Course Materials</h4>
+                            <ul className="space-y-1">
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/course-outline`,
+                                    <FaRegFileAlt />,
+                                    "Course Outline"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/assignments`,
+                                    <MdOutlineAssignment />,
+                                    "Assignments"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/videos`,
+                                    <FaRegFileVideo />,
+                                    "Videos"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/practiceproblem`,
+                                    <BsFileEarmarkText />,
+                                    "Practice Sheets"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/studentresources`,
+                                    <FaUserGraduate />,
+                                    "Student Resources"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/lecturenotes`,
+                                    <FaBook />,
+                                    "Lecture Notes"
+                                )}
+                            </ul>
                         </div>
 
                         {/* Communications */}
-                        <div>
-                            <p className={isActiveSection([
-                                "announcement", "chatroom"
-                            ]) ? "font-bold bg-[#012d5b] text-white px-4 py-2 mt-8 rounded-lg" : "text-xl mt-8"}>
-                                Communications
-                            </p>
-                            <div>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/announcement`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><MdAnnouncement /> Announcement</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/chatroom`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><IoChatbubblesOutline /> ChatRooms</NavLink></li>
-                            </div>
+                        <div className="mb-6">
+                            <h4 className="font-bold text-lg mb-2 px-2">Communications</h4>
+                            <ul className="space-y-1">
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/announcement`,
+                                    <MdAnnouncement />,
+                                    "Announcements"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/chatroom`,
+                                    <IoChatbubblesOutline />,
+                                    "Chat Room"
+                                )}
+                            </ul>
                         </div>
 
                         {/* Actions */}
                         <div>
-                            <p className={isActiveSection([
-                                "archive", "unenroll"
-                            ]) ? "font-bold bg-[#012d5b] text-white px-4 py-2 mt-8 rounded-lg" : "text-xl mt-8"}>
-                                Actions
-                            </p>
+                            <h4 className="font-bold text-lg mb-2 px-2">Actions</h4>
+                            <ul className="space-y-1">
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/archive`,
+                                    <FaArchive />,
+                                    "Archive"
+                                )}
+                                {createNavLink(
+                                    `/enrolledCourses/${courseTitle}/unenroll`,
+                                    <MdOutlineUnsubscribe />,
+                                    "Unenroll"
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Sidebar Toggle */}
+            <div className="lg:hidden fixed bottom-4 right-4 z-50">
+                <label htmlFor="mobile-drawer" className="btn btn-circle btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </label>
+            </div>
+
+            {/* Mobile Drawer */}
+            <div className="drawer lg:hidden">
+                <input id="mobile-drawer" type="checkbox" className="drawer-toggle" />
+                <div className="drawer-side">
+                    <label htmlFor="mobile-drawer" className="drawer-overlay"></label>
+                    <ul className="menu p-4 w-80 h-full bg-[#012d5b] text-white">
+                        <Link 
+                            title='Back to Dashboard' 
+                            to={'/home'}
+                            state={{ sectionName }}
+                            className="mb-6"
+                        >
+                            <FaArrowLeft className='w-10 h-10 p-2 border-2 rounded-full hover:bg-blue-700 transition'></FaArrowLeft>
+                        </Link>
+                        
+                        {/* Course Info */}
+                        <div className="mb-6 p-3 bg-blue-700 rounded-lg">
+                            <h3 className="font-bold text-lg">{courseTitle}</h3>
+                            {sectionName && <p className="text-sm opacity-80">Section: {sectionName}</p>}
+                        </div>
+
+                        {/* Navigation Sections */}
+                        <div className="flex-1 overflow-y-auto">
+                            {/* Course Materials */}
+                            <div className="mb-6">
+                                <h4 className="font-bold text-lg mb-2 px-2">Course Materials</h4>
+                                <ul className="space-y-1">
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/course-outline`,
+                                        <FaRegFileAlt />,
+                                        "Course Outline"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/assignments`,
+                                        <MdOutlineAssignment />,
+                                        "Assignments"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/videos`,
+                                        <FaRegFileVideo />,
+                                        "Videos"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/practiceproblem`,
+                                        <BsFileEarmarkText />,
+                                        "Practice Sheets"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/studentresources`,
+                                        <FaUserGraduate />,
+                                        "Student Resources"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/lecturenotes`,
+                                        <FaBook />,
+                                        "Lecture Notes"
+                                    )}
+                                </ul>
+                            </div>
+
+                            {/* Communications */}
+                            <div className="mb-6">
+                                <h4 className="font-bold text-lg mb-2 px-2">Communications</h4>
+                                <ul className="space-y-1">
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/announcement`,
+                                        <MdAnnouncement />,
+                                        "Announcements"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/chatroom`,
+                                        <IoChatbubblesOutline />,
+                                        "Chat Room"
+                                    )}
+                                </ul>
+                            </div>
+
+                            {/* Actions */}
                             <div>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/archive`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><FaArchive /> Archive</NavLink></li>
-                                <li><NavLink to={`/enrolledCourses/${courseTitle}/unenroll`} className={({ isActive }) => isActive ? "font-semibold text-xl text-white flex items-center gap-2" : "flex items-center gap-2 text-lg"}><MdOutlineUnsubscribe /> Unenroll</NavLink></li>
+                                <h4 className="font-bold text-lg mb-2 px-2">Actions</h4>
+                                <ul className="space-y-1">
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/archive`,
+                                        <FaArchive />,
+                                        "Archive"
+                                    )}
+                                    {createNavLink(
+                                        `/enrolledCourses/${courseTitle}/unenroll`,
+                                        <MdOutlineUnsubscribe />,
+                                        "Unenroll"
+                                    )}
+                                </ul>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+                {showChat ? (
+                    <div className="h-full flex flex-col">
+                        {/* Chatroom Header */}
+                        <div className="bg-white shadow-sm p-4 border-b">
+                            <div className="flex items-center justify-between">
+                                <button 
+                                    onClick={() => setShowChat(false)}
+                                    className="lg:hidden flex items-center text-blue-600 hover:text-blue-800"
+                                >
+                                    <FaArrowLeft className="mr-2" />
+                                    Back
+                                </button>
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    {courseTitle} - Section {sectionName} Chat
+                                </h2>
+                                <div className="w-8"></div> {/* Spacer for alignment */}
                             </div>
                         </div>
 
-                    </ul>
-                </div>
+                        {/* Chatroom Component */}
+                        <div className="flex-1 p-4">
+                            <Chatroom 
+                                courseCode={courseTitle} 
+                                section={sectionName} 
+                                userEmail={userEmail} 
+                                userType={userType} 
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-6">
+                        <Outlet context={{ course, sectionName }} />
+                    </div>
+                )}
             </div>
         </div>
     );

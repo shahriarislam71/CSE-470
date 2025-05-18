@@ -37,9 +37,9 @@ const AdminDashboard = () => {
                   transition={{ delay: 0.2 }}
                   className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"
                 >
-                  Admin<span className="text-black">Pro</span>
+                  Education And Communication<span className="text-black"></span>
                 </motion.h1>
-                <p className="text-sm text-purple-400 mt-1">Control Center</p>
+                <p className="text-sm text-black mt-3">Control Center</p>
               </div>
 
               {/* Navigation */}
