@@ -55,6 +55,10 @@ async function run() {
     const coursesCollection = db.collection("courses"); // New collection for courses
     const sectionsCollection = db.collection("sections");
     const sectionStudentsCollection = db.collection("sectionStudents");
+    const chatroomsCollection = db.collection("chatrooms");
+    const courseVideosCollection = db.collection("courseVideos");
+    const lectureNotesCollection = db.collection("lectureNotes");
+    const enrolledCoursesCollection = db.collection("enrolledCourses");
 
     // Image Upload Endpoint
     app.post("/upload", upload.single("image"), async (req, res) => {
@@ -104,6 +108,79 @@ async function run() {
       } catch (err) {
         console.error("Error retrieving image:", err);
         res.status(500).json({ message: "Error retrieving image" });
+      }
+    });
+
+    // Lecture Notes Endpoints
+    app.post("/lecture-notes", upload.single("file"), async (req, res) => {
+      try {
+        const { courseCode, email, week, title, description } = req.body;
+        const file = req.file;
+
+        if (!courseCode || !email || !week || !file) {
+          return res
+            .status(400)
+            .json({ message: "Required fields are missing" });
+        }
+
+        // Upload file to GridFS
+        const filename = `${Date.now()}_${file.originalname}`;
+        const uploadStream = gridFSBucket.openUploadStream(filename, {
+          contentType: file.mimetype,
+        });
+
+        uploadStream.end(file.buffer);
+
+        // Wait for upload to finish
+        const fileInfo = await new Promise((resolve, reject) => {
+          uploadStream.on("finish", () =>
+            resolve({
+              filename: filename,
+              fileId: uploadStream.id,
+              contentType: file.mimetype,
+              url: `http://localhost:5000/image/${uploadStream.id}`,
+            })
+          );
+          uploadStream.on("error", reject);
+        });
+
+        // Find or create lecture notes document
+        const result = await lectureNotesCollection.findOneAndUpdate(
+          { courseCode, email },
+          {
+            $setOnInsert: {
+              courseCode,
+              email,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            $push: {
+              notes: {
+                week: parseInt(week),
+                title,
+                description,
+                fileUrl: fileInfo.url,
+                fileId: fileInfo.fileId,
+                uploadedAt: new Date(),
+                contentType: fileInfo.contentType,
+              },
+            },
+          },
+          {
+            upsert: true,
+            returnDocument: "after",
+          }
+        );
+
+        res.status(201).json({
+          message: "Lecture note uploaded successfully",
+          lectureNote: result.value,
+        });
+      } catch (err) {
+        console.error("Error uploading lecture note:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while uploading lecture note" });
       }
     });
 
@@ -299,9 +376,16 @@ async function run() {
     });
 
     // get the single course
+    // Get single course by ID
     app.get("/courses/:id", async (req, res) => {
       try {
         const { id } = req.params;
+
+        // Validate the ID format first
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid course ID format" });
+        }
+
         const course = await coursesCollection.findOne({
           _id: new ObjectId(id),
         });
@@ -316,7 +400,6 @@ async function run() {
         res.status(500).json({ message: "Server error while fetching course" });
       }
     });
-
     // Teacher Routes (existing)
     app.post("/teachers", async (req, res) => {
       try {
@@ -446,17 +529,26 @@ async function run() {
           return res.status(400).json({ message: "All fields are required" });
         }
 
-        // Check if a section with this courseCode already exists
+        // Check if a section with this courseCode AND email already exists
         const existingSection = await sectionsCollection.findOne({
           courseCode,
+          email,
         });
 
         if (existingSection) {
-          // If exists, push the new sectionName to the sections array
+          // If exists with same courseCode AND email, push the new sectionName to the sections array
           const result = await sectionsCollection.updateOne(
-            { courseCode },
-            { $push: { sections: sectionName } }
+            { courseCode, email },
+            {
+              $push: { sections: sectionName },
+              $set: { updatedAt: new Date() },
+            }
           );
+          res.status(200).json({
+            success: true,
+            message: "Section added to existing course",
+            modifiedCount: result.modifiedCount,
+          });
         } else {
           // If doesn't exist, create a new document
           const newSection = {
@@ -466,12 +558,13 @@ async function run() {
             createdAt: new Date(),
             updatedAt: new Date(),
           };
-          await sectionsCollection.insertOne(newSection);
+          const result = await sectionsCollection.insertOne(newSection);
+          res.status(201).json({
+            success: true,
+            message: "New course section created",
+            insertedId: result.insertedId,
+          });
         }
-
-        res
-          .status(201)
-          .json({ success: true, message: "Section created successfully" });
       } catch (err) {
         console.error("Error creating section:", err);
         res
@@ -480,16 +573,27 @@ async function run() {
       }
     });
 
-    // Get sections by course code
-    app.get("/sections/:courseCode", async (req, res) => {
+    // Get sections by course code and email
+    app.get("/sections", async (req, res) => {
       try {
-        const { courseCode } = req.params;
-        const section = await sectionsCollection.findOne({ courseCode });
+        const { courseCode, email } = req.query;
+
+        if (!courseCode || !email) {
+          return res.status(400).json({
+            message: "Course code and email parameters are required",
+          });
+        }
+
+        const section = await sectionsCollection.findOne({
+          courseCode,
+          email,
+        });
 
         if (!section) {
-          return res
-            .status(404)
-            .json({ message: "No sections found for this course" });
+          return res.status(404).json({
+            message: "No sections found for this course and teacher",
+            sections: [], // Return empty array instead of error if preferred
+          });
         }
 
         res.json(section);
@@ -621,11 +725,369 @@ async function run() {
         res.json({ message: "Student removed from section successfully" });
       } catch (err) {
         console.error("Error removing student from section:", err);
+        res.status(500).json({
+          message: "Server error while removing student from section",
+        });
+      }
+    });
+
+    app.post("/chatrooms", async (req, res) => {
+      try {
+        const { courseCode, section, email, message, senderType } = req.body;
+
+        if (!courseCode || !section || !email || !message || !senderType) {
+          return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Find or create chatroom
+        const chatroom = await chatroomsCollection.findOneAndUpdate(
+          { courseCode, section },
+          {
+            $setOnInsert: {
+              courseCode,
+              section,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            $push: {
+              messages: {
+                email,
+                message,
+                senderType,
+                timestamp: new Date(),
+              },
+            },
+          },
+          {
+            upsert: true,
+            returnDocument: "after",
+          }
+        );
+
+        res.status(201).json({
+          message: "Message sent successfully",
+          chatroom: chatroom.value,
+        });
+      } catch (err) {
+        console.error("Error sending message:", err);
+        res.status(500).json({ message: "Server error while sending message" });
+      }
+    });
+
+    app.get("/chatrooms", async (req, res) => {
+      try {
+        const { courseCode, section } = req.query;
+
+        if (!courseCode || !section) {
+          return res
+            .status(400)
+            .json({ message: "Course code and section are required" });
+        }
+
+        const chatroom = await chatroomsCollection.findOne(
+          { courseCode, section },
+          { sort: { "messages.timestamp": -1 } }
+        );
+
+        if (!chatroom) {
+          return res.status(404).json({ message: "No chatroom found" });
+        }
+
+        res.json(chatroom);
+      } catch (err) {
+        console.error("Error fetching chatroom:", err);
         res
           .status(500)
-          .json({
-            message: "Server error while removing student from section",
-          });
+          .json({ message: "Server error while fetching chatroom" });
+      }
+    });
+
+    // Course Videos Endpoints
+    app.post("/course-videos", upload.single("video"), async (req, res) => {
+      try {
+        const { courseCode, email, week, title, description } = req.body;
+        const video = req.file;
+
+        if (!courseCode || !email || !week || !video) {
+          return res
+            .status(400)
+            .json({ message: "Required fields are missing" });
+        }
+
+        // Upload video to GridFS
+        const filename = `${Date.now()}_${video.originalname}`;
+        const uploadStream = gridFSBucket.openUploadStream(filename, {
+          contentType: video.mimetype,
+        });
+
+        uploadStream.end(video.buffer);
+
+        // Wait for upload to finish
+        const videoInfo = await new Promise((resolve, reject) => {
+          uploadStream.on("finish", () =>
+            resolve({
+              filename: filename,
+              videoId: uploadStream.id,
+              contentType: video.mimetype,
+              url: `http://localhost:5000/image/${uploadStream.id}`,
+            })
+          );
+          uploadStream.on("error", reject);
+        });
+
+        // Find or create course videos document
+        const result = await courseVideosCollection.findOneAndUpdate(
+          { courseCode, email },
+          {
+            $setOnInsert: {
+              courseCode,
+              email,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            $push: {
+              videos: {
+                week: parseInt(week),
+                title,
+                description,
+                videoUrl: videoInfo.url,
+                videoId: videoInfo.videoId,
+                uploadedAt: new Date(),
+                contentType: videoInfo.contentType,
+                duration: 0, // You can extract duration using a video processing library
+              },
+            },
+          },
+          {
+            upsert: true,
+            returnDocument: "after",
+          }
+        );
+
+        res.status(201).json({
+          message: "Lecture video uploaded successfully",
+          video: result.value,
+        });
+      } catch (err) {
+        console.error("Error uploading lecture video:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while uploading lecture video" });
+      }
+    });
+
+    app.get("/course-videos", async (req, res) => {
+      try {
+        const { courseCode, email } = req.query;
+
+        if (!courseCode || !email) {
+          return res
+            .status(400)
+            .json({ message: "Course code and email are required" });
+        }
+
+        const courseVideos = await courseVideosCollection.findOne(
+          { courseCode, email },
+          { sort: { "videos.uploadedAt": -1 } }
+        );
+
+        if (!courseVideos) {
+          return res
+            .status(404)
+            .json({ message: "No lecture videos found", videosByWeek: {} });
+        }
+
+        // Group videos by week
+        const videosByWeek = {};
+        courseVideos.videos.forEach((video) => {
+          if (!videosByWeek[video.week]) {
+            videosByWeek[video.week] = [];
+          }
+          videosByWeek[video.week].push(video);
+        });
+
+        res.json({
+          courseCode: courseVideos.courseCode,
+          email: courseVideos.email,
+          videosByWeek,
+        });
+      } catch (err) {
+        console.error("Error fetching lecture videos:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching lecture videos" });
+      }
+    });
+
+    app.delete("/course-videos/:videoId", async (req, res) => {
+      try {
+        const { videoId } = req.params;
+        const { courseCode, email } = req.query;
+
+        if (!videoId || !courseCode || !email) {
+          return res
+            .status(400)
+            .json({ message: "Video ID, course code and email are required" });
+        }
+
+        // First delete the video from GridFS
+        await gridFSBucket.delete(new ObjectId(videoId));
+
+        // Then remove the video reference
+        const result = await courseVideosCollection.updateOne(
+          { courseCode, email },
+          { $pull: { videos: { videoId: new ObjectId(videoId) } } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res.status(404).json({ message: "Lecture video not found" });
+        }
+
+        res.json({ message: "Lecture video deleted successfully" });
+      } catch (err) {
+        console.error("Error deleting lecture video:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while deleting lecture video" });
+      }
+    });
+
+    app.get("/lecture-notes", async (req, res) => {
+      try {
+        const { courseCode, email } = req.query;
+
+        if (!courseCode || !email) {
+          return res
+            .status(400)
+            .json({ message: "Course code and email are required" });
+        }
+
+        const lectureNotes = await lectureNotesCollection.findOne(
+          { courseCode, email },
+          { sort: { "notes.uploadedAt": -1 } }
+        );
+
+        if (!lectureNotes) {
+          return res
+            .status(404)
+            .json({ message: "No lecture notes found", notes: [] });
+        }
+
+        // Group notes by week
+        const notesByWeek = {};
+        lectureNotes.notes.forEach((note) => {
+          if (!notesByWeek[note.week]) {
+            notesByWeek[note.week] = [];
+          }
+          notesByWeek[note.week].push(note);
+        });
+
+        res.json({
+          courseCode: lectureNotes.courseCode,
+          email: lectureNotes.email,
+          notesByWeek,
+        });
+      } catch (err) {
+        console.error("Error fetching lecture notes:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching lecture notes" });
+      }
+    });
+
+    app.delete("/lecture-notes/:fileId", async (req, res) => {
+      try {
+        const { fileId } = req.params;
+        const { courseCode, email } = req.query;
+
+        if (!fileId || !courseCode || !email) {
+          return res
+            .status(400)
+            .json({ message: "File ID, course code and email are required" });
+        }
+
+        // First delete the file from GridFS
+        await gridFSBucket.delete(new ObjectId(fileId));
+
+        // Then remove the note reference
+        const result = await lectureNotesCollection.updateOne(
+          { courseCode, email },
+          { $pull: { notes: { fileId: new ObjectId(fileId) } } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res.status(404).json({ message: "Lecture note not found" });
+        }
+
+        res.json({ message: "Lecture note deleted successfully" });
+      } catch (err) {
+        console.error("Error deleting lecture note:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while deleting lecture note" });
+      }
+    });
+
+    // Get enrolled courses by student email
+    app.get("/enrolled-courses", async (req, res) => {
+      try {
+        const { email, courseCode } = req.query;
+        let query = {};
+
+        if (email) query.studentEmail = email;
+        if (courseCode) query.courseCode = courseCode;
+
+        const courses = await enrolledCoursesCollection.find(query).toArray();
+        res.json(courses);
+      } catch (err) {
+        console.error("Error fetching enrolled courses:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching enrolled courses" });
+      }
+    });
+
+    // Enroll in a course
+    app.post("/enrolled-courses", async (req, res) => {
+      try {
+        const {
+          studentEmail,
+          courseId,
+          courseCode,
+          courseName,
+          facultyInitial,
+        } = req.body;
+
+        if (!studentEmail || !courseId || !courseCode) {
+          return res
+            .status(400)
+            .json({ message: "Required fields are missing" });
+        }
+
+        const newEnrollment = {
+          studentEmail,
+          courseId,
+          courseCode,
+          courseName,
+          facultyInitial,
+          enrolledAt: new Date(),
+          status: "active",
+          lastAccessed: new Date(),
+        };
+
+        const result = await enrolledCoursesCollection.insertOne(newEnrollment);
+        res.status(201).json({
+          message: "Enrollment successful",
+          enrollment: {
+            id: result.insertedId,
+            ...newEnrollment,
+          },
+        });
+      } catch (err) {
+        console.error("Error enrolling in course:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while enrolling in course" });
       }
     });
 
